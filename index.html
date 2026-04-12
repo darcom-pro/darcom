@@ -1214,7 +1214,7 @@ let currentUser=null,jFilter='all',accFilter='all',wFilter='all',scannedKnet=nul
 let pendingDelete=null;
 let companyInfo={ar:'شركة داركم للتجارة العامة والمقاولات',en:'Darcom For Trading and Contracting Co.',phone:'',addr:'الكويت'};
 let driveToken=null,driveFileId=null,tokenClient=null;
-const DRIVE_CLIENT_ID='256150541193-a1p6funt5t0opo8q0g51tqi8hoqqu2et.apps.googleusercontent.com';
+const DRIVE_CLIENT_ID='256150541193-t5laj8hi595jt3u15gi3im4fn5et1j5v.apps.googleusercontent.com';
 const DRIVE_SCOPES='https://www.googleapis.com/auth/drive.file';
 const DRIVE_FILE='darcom_pro_data.json';
 
@@ -2142,32 +2142,50 @@ function saveUser(){
 function delUser(id){if(!confirm('حذف هذا المستخدم؟'))return;users=users.filter(u=>u.id!==id);persist();renderUsers();toast('تم الحذف','err');}
 
 // ══ CLOUD / DRIVE ═════════════════════════
+function initTokenClientIfNeeded(callback){
+  try{
+    if(!tokenClient){
+      tokenClient=google.accounts.oauth2.initTokenClient({
+        client_id:DRIVE_CLIENT_ID,
+        scope:DRIVE_SCOPES,
+        callback:(resp)=>{
+          if(resp.access_token){
+            driveToken=resp.access_token;
+            document.getElementById('cloudBtn').textContent='☁️ Drive ✓';
+            document.getElementById('cloudBtn').className='tbtn tbtn-ok';
+            if(callback)callback();
+          }else{
+            toast('فشل تسجيل الدخول إلى Google Drive','err');
+          }
+        }
+      });
+    }else{
+      // إعادة تعيين الـ callback للعملية الجديدة
+      tokenClient.callback=(resp)=>{
+        if(resp.access_token){
+          driveToken=resp.access_token;
+          document.getElementById('cloudBtn').textContent='☁️ Drive ✓';
+          document.getElementById('cloudBtn').className='tbtn tbtn-ok';
+          if(callback)callback();
+        }else{
+          toast('فشل تسجيل الدخول إلى Google Drive','err');
+        }
+      };
+    }
+    tokenClient.requestAccessToken();
+  }catch(e){
+    toast('تعذر الاتصال — تأكد من الاتصال بالإنترنت','err');
+  }
+}
+
 function cloudSave(){
   if(driveToken){driveDoSave();return;}
-  // Export as JSON
-  const data={projects,entries,contractors,workers,attendance,mukhalsahs,inkaz,vouchers,taswiyat,cars,carExpenses,users,companyInfo,vseq,savedAt:new Date().toISOString(),version:'Pro-Final'};
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download=`داركم_Pro_${today()}.json`;a.click();
-  document.getElementById('cloudBtn').textContent='☁️ تم ✓';
-  document.getElementById('cloudBtn').className='tbtn tbtn-ok';
-  toast('✅ تم التصدير — احفظ الملف في Google Drive','info');
+  initTokenClientIfNeeded(()=>driveDoSave());
 }
 
 function driveLoad(){
-  if(!driveToken){
-    try{
-      if(!tokenClient){
-        tokenClient=google.accounts.oauth2.initTokenClient({
-          client_id:DRIVE_CLIENT_ID,scope:DRIVE_SCOPES,
-          callback:(resp)=>{if(resp.access_token){driveToken=resp.access_token;document.getElementById('cloudBtn').textContent='☁️ Drive ✓';document.getElementById('cloudBtn').className='tbtn tbtn-ok';driveLoadData();}}
-        });
-      }
-      tokenClient.requestAccessToken();
-    }catch(e){toast('تعذر الاتصال — تأكد من الاتصال بالإنترنت','err');}
-    return;
-  }
-  driveLoadData();
+  if(driveToken){driveLoadData();return;}
+  initTokenClientIfNeeded(()=>driveLoadData());
 }
 
 async function driveLoadData(){
