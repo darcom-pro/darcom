@@ -1,0 +1,2313 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0c1a2e">
+<title>داركم Pro — نظام إدارة المقاولات</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async></script>
+<style>
+:root {
+  --bg:#0c1a2e;--bg2:#112238;--bg3:#162d47;--panel:#1a3354;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --gold:#c9962a;--gold2:#e8b84b;--gold-bg:rgba(201,150,42,0.12);
+  --blue:#3a8fd1;--blue-bg:rgba(58,143,209,0.12);
+  --green:#27ae60;--green2:#2ecc71;--green-bg:rgba(39,174,96,0.12);
+  --red:#c0392b;--red2:#e74c3c;--red-bg:rgba(192,57,43,0.12);
+  --orange:#d35400;--orange2:#e67e22;--orange-bg:rgba(211,84,0,0.12);
+  --purple:#7d3c98;--purple2:#9b59b6;
+  --text:#dce8f5;--text2:#7a9bbf;--text3:#4a6a8a;
+  --mono:'IBM Plex Mono',monospace;--sans:'Cairo',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--sans);}
+
+/* LOGIN */
+.login-wrap{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;padding:20px;}
+.login-box{background:var(--bg2);border:1px solid var(--border2);border-radius:18px;padding:32px 24px;width:100%;max-width:360px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.5);}
+.login-logo{width:64px;height:64px;background:linear-gradient(135deg,var(--gold),#a07820);border-radius:16px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:28px;color:#0c1a2e;font-family:var(--mono);margin:0 auto 16px;box-shadow:0 4px 20px rgba(201,150,42,0.4);}
+.login-title{font-size:22px;font-weight:900;margin-bottom:4px;}
+.login-sub{font-size:11px;color:var(--text3);margin-bottom:24px;line-height:1.6;}
+.lfield{margin-bottom:12px;text-align:right;}
+.lfield label{font-size:11px;font-weight:700;color:var(--text3);display:block;margin-bottom:4px;}
+.lfield input{width:100%;padding:11px 13px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:9px;font-family:var(--sans);font-size:14px;color:var(--text);direction:rtl;}
+.lfield input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,150,42,0.1);}
+.login-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--gold),#a07820);color:#0c1a2e;border:none;border-radius:9px;font-family:var(--sans);font-size:14px;font-weight:900;cursor:pointer;margin-top:8px;}
+.login-err{color:var(--red2);font-size:12px;margin-top:8px;min-height:20px;}
+
+/* APP */
+.app{display:flex;flex-direction:column;height:100%;}
+
+/* TOPBAR */
+.topbar{height:52px;background:var(--bg2);border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;padding:0 14px;flex-shrink:0;position:relative;}
+.topbar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand-mark{width:34px;height:34px;background:linear-gradient(135deg,var(--gold),#a07820);border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;color:#0c1a2e;font-family:var(--mono);}
+.brand-name{font-weight:900;font-size:16px;}
+.brand-tag{font-size:9px;background:var(--gold-bg);color:var(--gold);padding:2px 7px;border-radius:6px;border:1px solid rgba(201,150,42,0.2);margin-right:4px;font-family:var(--mono);}
+.topbar-r{display:flex;align-items:center;gap:8px;}
+.tbtn{font-size:10px;padding:4px 9px;border-radius:7px;font-weight:700;cursor:pointer;border:none;font-family:var(--sans);}
+.tbtn-gold{background:var(--gold-bg);color:var(--gold);border:1px solid rgba(201,150,42,0.2);}
+.tbtn-ok{background:var(--green-bg);color:var(--green2);border:1px solid rgba(46,204,113,0.25);}
+.tbtn-off{background:var(--bg3);color:var(--text3);border:1px solid var(--border2);}
+.top-time{font-family:var(--mono);font-size:10px;color:var(--text3);}
+
+/* TABS */
+.tabs{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;overflow-x:auto;scrollbar-width:none;flex-shrink:0;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{flex:none;padding:9px 12px;font-size:11px;font-weight:700;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;}
+.tab.on{color:var(--gold);border-bottom-color:var(--gold);}
+.tab:hover:not(.on){color:var(--text);background:var(--blue-bg);}
+
+/* LAYOUT */
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.page{display:none;padding:14px;max-width:920px;margin:0 auto;padding-bottom:80px;}
+.page.on{display:block;}
+
+/* CARDS */
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:15px;margin-bottom:12px;box-shadow:0 4px 20px rgba(0,0,0,0.2);}
+.card-hd{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:13px;padding-bottom:9px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px;}
+.stat{background:var(--bg3);border:1px solid var(--border);border-radius:11px;padding:13px 11px;text-align:center;}
+.slbl{font-size:10px;color:var(--text3);font-weight:700;margin-bottom:3px;}
+.sval{font-size:20px;font-weight:900;font-family:var(--mono);line-height:1;}
+.sval.g{color:var(--gold);}.sval.b{color:var(--blue);}.sval.gr{color:var(--green2);}.sval.r{color:var(--red2);}
+.ssub{font-size:9px;color:var(--text3);margin-top:2px;}
+
+/* PROGRESS */
+.prog{margin:5px 0;}
+.prog-bg{height:6px;background:var(--bg);border-radius:4px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:4px;transition:width .5s ease;}
+.p-ok{background:linear-gradient(90deg,#1a6b35,var(--green2));}.p-warn{background:linear-gradient(90deg,#8b4f00,var(--orange2));}.p-over{background:linear-gradient(90deg,#8b1515,var(--red2));}
+.prog-row{display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:3px;}
+
+/* FORMS */
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.full{grid-column:1/-1;}
+.fl{display:flex;flex-direction:column;gap:4px;}
+label{font-size:11px;font-weight:700;color:var(--text3);}
+input,select,textarea{width:100%;padding:9px 11px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:9px;font-family:var(--sans);font-size:13px;color:var(--text);direction:rtl;-webkit-appearance:none;transition:border-color .15s;}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,150,42,0.1);}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234a6a8a' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 11px center;padding-left:30px;}
+textarea{resize:vertical;min-height:58px;}
+input::placeholder,textarea::placeholder{color:var(--text3);}
+.search-input{background:var(--bg3);border:1.5px solid var(--border2);border-radius:9px;padding:8px 11px;font-size:12px;color:var(--text);width:100%;margin-bottom:8px;direction:rtl;}
+.search-input:focus{outline:none;border-color:var(--gold);}
+
+/* BUTTONS */
+.btn{padding:9px 16px;border-radius:9px;border:none;font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s;}
+.btn-gold{background:linear-gradient(135deg,var(--gold),#a07820);color:#0c1a2e;}
+.btn-gold:active{transform:scale(.97);}
+.btn-blue{background:var(--blue-bg);color:var(--blue);border:1px solid rgba(58,143,209,0.25);}
+.btn-green{background:var(--green-bg);color:var(--green2);border:1px solid rgba(46,204,113,0.25);}
+.btn-red{background:var(--red-bg);color:var(--red2);border:1px solid rgba(231,76,60,0.2);}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border2);}
+.btn-orange{background:var(--orange-bg);color:var(--orange2);border:1px solid rgba(230,126,34,0.25);}
+.btn-sm{padding:5px 11px;font-size:11px;border-radius:7px;}
+.btn-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:13px;}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:480px;}
+th{background:var(--bg3);color:var(--text3);padding:9px 8px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;white-space:nowrap;border-bottom:1px solid var(--border2);}
+td{padding:8px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,0.02);}
+.mono{font-family:var(--mono);font-weight:600;}
+.tg{color:var(--green2);}.tr{color:var(--red2);}.tgo{color:var(--gold);}.tb{color:var(--blue);}
+.empty{text-align:center;padding:36px;color:var(--text3);font-size:13px;}
+
+/* BADGES */
+.badge{font-size:9px;font-weight:800;padding:2px 7px;border-radius:7px;white-space:nowrap;font-family:var(--mono);}
+.bg{background:var(--gold-bg);color:var(--gold);}
+.bb{background:var(--blue-bg);color:var(--blue);}
+.bgr{background:var(--green-bg);color:var(--green2);}
+.br{background:var(--red-bg);color:var(--red2);}
+.bo{background:var(--orange-bg);color:var(--orange2);}
+.bp{background:rgba(125,60,152,0.15);color:var(--purple2);}
+
+/* ENTRY TYPE COLORS */
+.entry-out{color:var(--red2);}
+.entry-in{color:var(--green2);}
+.entry-custody{color:var(--gold);}
+
+/* LIST ROW */
+.lrow{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);}
+.lrow:last-child{border:none;}
+.lcode{font-family:var(--mono);font-size:9px;background:var(--bg);color:var(--text3);padding:2px 6px;border-radius:4px;flex-shrink:0;}
+.lname{flex:1;font-size:12px;}
+.lamt{font-family:var(--mono);font-size:12px;font-weight:700;flex-shrink:0;}
+
+/* STITLE */
+.stitle{font-size:10px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:9px;display:flex;align-items:center;gap:8px;}
+.stitle::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border2),transparent);}
+
+/* PILLS */
+.pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:11px;}
+.pill{padding:5px 12px;border-radius:16px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid var(--border2);color:var(--text3);transition:all .15s;background:transparent;}
+.pill.on{background:var(--gold);color:#0c1a2e;border-color:var(--gold);}
+.pill:hover:not(.on){border-color:var(--gold);color:var(--gold);}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:300;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(5px);}
+.overlay.on{display:flex;}
+.modal{background:var(--bg2);border-radius:18px 18px 0 0;padding:18px 15px 40px;width:100%;max-width:580px;border:1px solid var(--border2);border-bottom:none;animation:slideUp .25s ease;max-height:92vh;overflow-y:auto;}
+.modal-handle{width:38px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 15px;}
+.modal-title{font-size:15px;font-weight:900;margin-bottom:15px;}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);padding:10px 20px;border-radius:20px;font-size:12px;font-weight:700;z-index:999;transition:transform .3s;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.4);}
+.toast.on{transform:translateX(-50%) translateY(0);}
+.toast.ok{background:var(--green);color:#0c1a2e;}.toast.err{background:var(--red2);color:white;}.toast.info{background:var(--gold);color:#0c1a2e;}
+
+/* VENDOR DROPDOWN */
+.vdrop-wrap{position:relative;}
+#vdrop{position:absolute;top:100%;right:0;left:0;background:var(--bg2);border:1.5px solid var(--gold);border-radius:0 0 9px 9px;z-index:50;max-height:150px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.4);display:none;}
+.vitem{padding:8px 12px;cursor:pointer;font-size:12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.vitem:hover{background:var(--gold-bg);}
+
+/* SCAN */
+.scan-zone{border:2px dashed var(--border2);border-radius:12px;padding:28px 20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg3);}
+.scan-zone:hover,.scan-zone.drag{border-color:var(--gold);background:var(--gold-bg);}
+.aibox{border-radius:11px;padding:13px;margin-top:11px;display:none;}
+.aibox.on{display:block;}
+.aibox.proc{background:var(--blue-bg);border:1.5px solid rgba(58,143,209,0.3);}
+.aibox.res{background:var(--green-bg);border:1.5px solid rgba(46,204,113,0.3);}
+.aibox.knet{background:rgba(125,60,152,0.1);border:1.5px solid rgba(125,60,152,0.3);}
+.spinner{width:20px;height:20px;border:2px solid var(--blue-bg);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* KNET */
+.kcard{background:rgba(125,60,152,0.08);border:1px solid rgba(125,60,152,0.2);border-radius:9px;padding:11px;margin-bottom:11px;}
+.krow{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(125,60,152,0.1);font-size:12px;}
+.krow:last-child{border:none;}
+.klbl{color:var(--purple2);font-weight:700;}.kval{font-family:var(--mono);font-weight:600;}
+
+/* ALERT BOX */
+.alert-box{background:var(--red-bg);border:1px solid rgba(231,76,60,0.3);border-radius:10px;padding:12px;margin-bottom:10px;}
+.alert-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(231,76,60,0.15);font-size:12px;}
+.alert-item:last-child{border:none;}
+
+/* PCARD */
+.pcard{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;cursor:pointer;transition:all .2s;}
+.pcard:hover{border-color:var(--gold);transform:translateY(-1px);}
+
+/* CCARD */
+.ccard{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:11px;}
+.cav{width:40px;height:40px;border-radius:10px;flex-shrink:0;background:linear-gradient(135deg,var(--bg2),var(--panel));border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:var(--gold);}
+
+/* RECEIPT */
+@media print{body *{visibility:hidden;}#printArea,#printArea *{visibility:visible;}#printArea{position:fixed;top:0;left:0;right:0;padding:0;}}
+.receipt{background:white;color:#1a1a1a;border-radius:12px;padding:24px;font-family:var(--sans);direction:rtl;}
+.receipt-hd{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1a3354;padding-bottom:14px;margin-bottom:16px;}
+.rlogo{display:flex;align-items:center;gap:10px;}
+.rlogo-mark{width:48px;height:48px;background:linear-gradient(135deg,#c9962a,#a07820);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px;color:white;font-family:monospace;}
+.rco-ar{font-size:13px;font-weight:900;color:#1a3354;}
+.rco-en{font-size:10px;color:#666;margin-top:2px;}
+.rtype-title{font-size:16px;font-weight:900;color:#1a3354;}
+.rtype-num{font-size:24px;font-weight:900;color:#c0392b;font-family:monospace;}
+.rrow{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed #ddd;font-size:13px;align-items:center;}
+.rrow:last-child{border:none;}
+.rlbl{color:#555;font-weight:700;}.rval{font-weight:800;color:#1a1a1a;}
+.ramt-box{background:#1a3354;color:white;border-radius:9px;padding:12px 16px;margin:14px 0;display:flex;justify-content:space-between;align-items:center;}
+.rbeing{background:#f8f6f0;border-right:3px solid #c9962a;padding:10px 12px;border-radius:0 8px 8px 0;margin:10px 0;font-size:12px;color:#333;line-height:1.7;}
+.rsigs{display:flex;justify-content:space-between;margin-top:20px;padding-top:16px;border-top:1px solid #ddd;}
+.rsig-box{text-align:center;width:45%;}
+.rsig-lbl{font-size:11px;color:#555;margin-bottom:8px;font-weight:700;}
+.rsig-area{border-bottom:1px solid #999;min-height:55px;display:flex;align-items:flex-end;justify-content:center;}
+.rfooter{text-align:center;margin-top:14px;font-size:10px;color:#999;border-top:1px solid #eee;padding-top:10px;}
+
+/* MUKHALSAH */
+.muk-print{background:white;color:#1a1a1a;padding:32px;font-family:var(--sans);direction:rtl;}
+.muk-title{text-align:center;font-size:28px;font-weight:900;color:#1a3354;margin-bottom:6px;text-decoration:underline;}
+.muk-body{font-size:14px;line-height:2.3;color:#1a1a1a;}
+.muk-line{border-bottom:1px solid #333;display:inline-block;min-width:200px;margin:0 4px;}
+.muk-line-sm{border-bottom:1px solid #333;display:inline-block;min-width:120px;margin:0 4px;}
+.muk-sigs{margin-top:40px;display:flex;justify-content:space-between;}
+.muk-sig-line{border-top:1px solid #333;width:160px;padding-top:6px;margin-top:50px;font-size:12px;color:#555;text-align:center;}
+
+/* SIG PAD */
+.sig-pad{border:2px dashed var(--border2);border-radius:9px;background:white;cursor:crosshair;display:block;touch-action:none;}
+
+/* ACCOUNT TREE SEARCH */
+.acc-search{margin-bottom:10px;}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+.divider{height:1px;background:var(--border);margin:11px 0;}
+
+/* NOTIFICATION DOT */
+.notif-dot{display:inline-block;width:8px;height:8px;background:var(--red2);border-radius:50%;margin-right:4px;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+@media(max-width:420px){.fg{grid-template-columns:1fr;}.full{grid-column:1;}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-box">
+    <div class="login-logo">D</div>
+    <div class="login-title">داركم Pro</div>
+    <div class="login-sub">شركة داركم للتجارة العامة والمقاولات<br>Darcom For Trading and Contracting Co.</div>
+    <div class="lfield"><label>اسم المستخدم</label><input type="text" id="li-user" placeholder="أدخل اسم المستخدم" autocomplete="off"></div>
+    <div class="lfield"><label>كلمة المرور</label><input type="password" id="li-pass" placeholder="أدخل كلمة المرور" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="login-btn" onclick="doLogin()">دخول ←</button>
+    <div class="login-err" id="li-err"></div>
+  </div>
+</div>
+
+<div class="app" id="mainApp" style="display:none;">
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-mark">D</div>
+    <div>
+      <div style="display:flex;align-items:center;gap:5px;"><span class="brand-name">داركم</span><span class="brand-tag">Pro</span></div>
+      <div style="font-size:9px;color:var(--text3);">نظام إدارة المقاولات</div>
+    </div>
+  </div>
+  <div class="topbar-r">
+    <button class="tbtn tbtn-off" id="cloudBtn" onclick="cloudSave()">☁️ Drive</button>
+    <button class="tbtn tbtn-gold" id="topUser" onclick="logout()">خروج</button>
+    <div class="top-time" id="topTime"></div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab on" onclick="go('dash')">📊 الرئيسية</div>
+  <div class="tab" onclick="go('projects')">📁 مشاريع</div>
+  <div class="tab" onclick="go('add')">➕ قيد</div>
+  <div class="tab" onclick="go('scan')">📷 مسح</div>
+  <div class="tab" onclick="go('journal')">📋 اليومية</div>
+  <div class="tab" onclick="go('inkaz')">📈 الإنجاز</div>
+  <div class="tab" onclick="go('vouchers')">🧾 السندات</div>
+  <div class="tab" onclick="go('mukhalsah')">📄 مخالصات</div>
+  <div class="tab" onclick="go('contractors')">👷 مقاولون</div>
+  <div class="tab" onclick="go('workers')">🧱 عمال</div>
+  <div class="tab" onclick="go('cars')">🚗 سيارات</div>
+  <div class="tab" onclick="go('accounts')">🌳 حسابات</div>
+  <div class="tab" onclick="go('reports')">📊 تقارير</div>
+  <div class="tab" onclick="go('settings')">⚙️ إعدادات</div>
+</div>
+
+<div class="scroll">
+
+<!-- ══ DASHBOARD ══ -->
+<div class="page on" id="p-dash">
+  <div id="alertsBox"></div>
+  <div class="stats">
+    <div class="stat"><div class="slbl">إجمالي المصروف</div><div class="sval g" id="d-total">0.000</div><div class="ssub">KD</div></div>
+    <div class="stat"><div class="slbl">إجمالي الوارد</div><div class="sval gr" id="d-income">0.000</div><div class="ssub">KD</div></div>
+    <div class="stat"><div class="slbl">صافي الربح</div><div class="sval b" id="d-profit">0.000</div><div class="ssub">KD</div></div>
+    <div class="stat"><div class="slbl">مصاريف المكتب</div><div class="sval r" id="d-office">0.000</div><div class="ssub">KD</div></div>
+  </div>
+  <div class="card"><div class="card-hd">📁 المشاريع النشطة</div><div id="d-projs"></div></div>
+  <div class="card"><div class="card-hd">🕐 آخر القيود</div><div id="d-recent"></div></div>
+  <div class="btn-row">
+    <button class="btn btn-gold" onclick="exportExcel()">⬇️ Excel</button>
+    <button class="btn btn-blue" onclick="go('projects')">+ مشروع</button>
+    <button class="btn btn-green" onclick="cloudSave()">☁️ حفظ Drive</button>
+  </div>
+</div>
+
+<!-- ══ PROJECTS ══ -->
+<div class="page" id="p-projects">
+  <div class="card">
+    <div class="card-hd">📁 جميع المشاريع <button class="btn btn-gold btn-sm" onclick="openProjModal()">+ جديد</button></div>
+    <div id="proj-list"></div>
+  </div>
+</div>
+
+<!-- ══ ADD ENTRY ══ -->
+<div class="page" id="p-add">
+  <div class="card">
+    <div class="card-hd">➕ إضافة قيد جديد</div>
+    <div class="fg">
+      <div class="fl">
+        <label>نوع القيد</label>
+        <select id="f-etype" onchange="onEtypeChange()">
+          <option value="صرف">💸 صرف / مصروف (صادر)</option>
+          <option value="قبض">💰 قبض / إيراد (وارد)</option>
+          <option value="استلام">📦 استلام مواد</option>
+          <option value="عهدة">🔑 عهدة موظف</option>
+          <option value="مكتب">🏢 مصاريف مكتب</option>
+        </select>
+      </div>
+      <div class="fl">
+        <label>تاريخ المعاملة الفعلي</label>
+        <input type="date" id="f-date">
+      </div>
+      <div class="fl" id="f-proj-wrap">
+        <label>المشروع</label>
+        <select id="f-proj"><option value="">-- اختر المشروع --</option></select>
+      </div>
+      <div class="fl">
+        <label>رقم السند / Ref</label>
+        <input type="text" id="f-voucher" placeholder="تلقائي">
+      </div>
+      <div class="fl full">
+        <label>البند المحاسبي</label>
+        <input type="text" id="f-cat-search" placeholder="ابحث في البنود..." oninput="filterCatSearch(this.value,'f-cat')" class="search-input">
+        <select id="f-cat" size="1"><option value="">-- اختر البند --</option></select>
+      </div>
+      <div class="fl full vdrop-wrap">
+        <label>المقاول / المورد / الجهة</label>
+        <input type="text" id="f-vendor" placeholder="اكتب للبحث..." oninput="filterVendors(this.value)" autocomplete="off">
+        <div id="vdrop"></div>
+      </div>
+      <div class="fl full"><label>الوصف</label><textarea id="f-desc" placeholder="وصف العمل أو المادة أو المعاملة"></textarea></div>
+      <div class="fl">
+        <label>المبلغ (KD)</label>
+        <input type="number" id="f-amount" placeholder="0.000" step="0.001" min="0">
+      </div>
+      <div class="fl">
+        <label>طريقة الدفع / القبض</label>
+        <select id="f-pay">
+          <option value="نقد">نقد / Cash</option>
+          <option value="KNET">KNET</option>
+          <option value="شيك">شيك</option>
+          <option value="تحويل بنكي - شركة">تحويل بنكي — حساب الشركة</option>
+          <option value="تحويل بنكي - شخصي">تحويل بنكي — الحساب الشخصي</option>
+        </select>
+      </div>
+      <div class="fl" id="f-outside-wrap" style="display:none;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" id="f-outside" style="width:auto;direction:ltr;"> خارج العقد
+        </label>
+      </div>
+      <div class="fl full"><label>ملاحظات</label><input type="text" id="f-notes" placeholder="ملاحظات إضافية"></div>
+    </div>
+    <div style="font-size:10px;color:var(--text3);margin-top:8px;">تاريخ التسجيل: <span id="f-reg-date" style="font-family:var(--mono)"></span></div>
+    <div class="btn-row">
+      <button class="btn btn-gold" onclick="saveEntry()">💾 حفظ القيد</button>
+      <button class="btn btn-ghost btn-sm" onclick="clearForm()">مسح</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCAN ══ -->
+<div class="page" id="p-scan">
+  <div class="card">
+    <div class="card-hd">📷 مسح فاتورة / إيصال</div>
+    <div class="scan-zone" id="scanZone" onclick="document.getElementById('fileIn').click()">
+      <div style="font-size:40px;margin-bottom:8px;">📄</div>
+      <div style="font-size:13px;color:var(--text3);line-height:1.8;"><strong style="color:var(--gold)">اضغط لرفع صورة</strong><br>فاتورة أو إيصال KNET<br><span style="font-size:10px">JPG · PNG · PDF</span></div>
+    </div>
+    <input type="file" id="fileIn" accept="image/*,application/pdf" capture="environment" onchange="handleScan(this)" style="display:none">
+    <div class="aibox proc" id="aiProc"><div style="display:flex;align-items:center;gap:10px;justify-content:center;"><div class="spinner"></div><span style="font-size:13px;color:var(--blue);font-weight:700;">جاري التحليل بالذكاء الاصطناعي...</span></div></div>
+    <div class="aibox knet" id="knetBox">
+      <div style="font-weight:800;color:var(--purple2);margin-bottom:10px;">🏧 إيصال KNET</div>
+      <div class="kcard" id="knetData"></div>
+      <div class="fg">
+        <div class="fl"><label>المشروع</label><select id="k-proj"></select></div>
+        <div class="fl"><label>البند</label><select id="k-cat"></select></div>
+        <div class="fl full"><label>المورد</label><input type="text" id="k-vendor"></div>
+        <div class="fl full"><label>الوصف</label><textarea id="k-desc"></textarea></div>
+        <div class="fl"><label>المبلغ (KD)</label><input type="number" id="k-amount" step="0.001"></div>
+        <div class="fl"><label>ملاحظات</label><input type="text" id="k-notes"></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-green" onclick="saveKnet()">✅ حفظ</button><button class="btn btn-red btn-sm" onclick="cancelScan()">إلغاء</button></div>
+    </div>
+    <div class="aibox res" id="aiBox">
+      <div style="font-weight:800;color:var(--green2);margin-bottom:10px;">✅ تم استخراج بيانات الفاتورة</div>
+      <div class="fg">
+        <div class="fl"><label>التاريخ</label><input type="date" id="a-date"></div>
+        <div class="fl"><label>رقم السند</label><input type="text" id="a-voucher"></div>
+        <div class="fl"><label>المشروع</label><select id="a-proj"></select></div>
+        <div class="fl"><label>البند</label><select id="a-cat"></select></div>
+        <div class="fl full"><label>المورد</label><input type="text" id="a-vendor"></div>
+        <div class="fl full"><label>الوصف</label><textarea id="a-desc"></textarea></div>
+        <div class="fl"><label>المبلغ (KD)</label><input type="number" id="a-amount" step="0.001"></div>
+        <div class="fl"><label>نوع الدفع</label><select id="a-pay"><option value="نقد">نقد</option><option value="KNET">KNET</option><option value="شيك">شيك</option><option value="تحويل بنكي - شركة">تحويل - شركة</option></select></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-green" onclick="saveAi()">✅ تأكيد وحفظ</button><button class="btn btn-red btn-sm" onclick="cancelScan()">إلغاء</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ JOURNAL ══ -->
+<div class="page" id="p-journal">
+  <div class="card" style="padding:12px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:7px;">
+      <div class="card-hd" style="margin:0;border:none;padding:0;">📋 اليومية المركزية</div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-green btn-sm" onclick="exportExcel()">⬇️ Excel</button>
+        <button class="btn btn-ghost btn-sm" onclick="printJournal()">🖨️</button>
+      </div>
+    </div>
+    <input type="text" class="search-input" id="j-search" placeholder="🔍 بحث في القيود..." oninput="renderJournal()">
+    <div class="pills" id="jPills"></div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>#</th><th>التاريخ</th><th>النوع</th><th>المشروع/النوع</th><th>المورد</th><th>البند</th><th>المبلغ KD</th><th>الدفع</th><th></th></tr></thead>
+        <tbody id="jBody"></tbody>
+      </table>
+    </div>
+    <div style="margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--text3);">
+      صادر: <strong id="j-out" style="color:var(--red2)">0.000</strong> | وارد: <strong id="j-in" style="color:var(--green2)">0.000</strong> | صافي: <strong id="j-net" style="color:var(--gold)">0.000</strong> KD &nbsp;|&nbsp; <span id="j-cnt">0</span> قيد
+    </div>
+  </div>
+</div>
+
+<!-- ══ INKAZ ══ -->
+<div class="page" id="p-inkaz">
+  <div class="card">
+    <div class="card-hd">📈 متابعة الإنجاز <button class="btn btn-gold btn-sm" onclick="openInkazModal()">+ تحديث</button></div>
+    <div id="inkaz-list"><div class="empty">أضف مشروعاً وحدّث نسب الإنجاز</div></div>
+  </div>
+</div>
+
+<!-- ══ VOUCHERS ══ -->
+<div class="page" id="p-vouchers">
+  <div class="card">
+    <div class="card-hd">🧾 إصدار سند صرف / قبض</div>
+    <div class="fg">
+      <div class="fl"><label>نوع السند</label>
+        <select id="v-type"><option value="صرف">سند صرف — Payment Voucher</option><option value="قبض">سند قبض — Receipt Voucher</option></select>
+      </div>
+      <div class="fl"><label>التاريخ</label><input type="date" id="v-date"></div>
+      <div class="fl"><label>رقم السند No.</label><input type="text" id="v-no"></div>
+      <div class="fl"><label>المشروع (اختياري)</label><select id="v-proj"><option value="">-- بدون مشروع --</option></select></div>
+      <div class="fl full"><label>Paid to / Received from — الاسم</label><input type="text" id="v-to" placeholder="اسم الشخص أو الجهة"></div>
+      <div class="fl"><label>المبلغ بالدينار KD</label><input type="number" id="v-kd" placeholder="0" step="1" min="0" oninput="updateAmountText()"></div>
+      <div class="fl"><label>الفلوس Fils</label><input type="number" id="v-fils" placeholder="000" step="1" min="0" max="999" oninput="updateAmountText()"></div>
+      <div class="fl full"><label>Being of — البيان</label><textarea id="v-being" placeholder="وصف الدفعة"></textarea></div>
+      <div class="fl"><label>طريقة الدفع</label>
+        <select id="v-bank"><option value="Cash">نقد / Cash</option><option value="Cheque">شيك / Cheque</option><option value="Transfer">تحويل / Transfer</option><option value="KNET">KNET</option></select>
+      </div>
+      <div class="fl"><label>مرجع / شيك رقم</label><input type="text" id="v-ref" placeholder="اختياري"></div>
+    </div>
+    <div style="margin-top:12px;">
+      <label style="display:block;margin-bottom:6px;">توقيع المستلم (ارسم بإصبعك)</label>
+      <canvas class="sig-pad" id="sigV" width="500" height="100" style="width:100%;"></canvas>
+      <div class="btn-row"><button class="btn btn-ghost btn-sm" onclick="clearSig('sigV')">مسح التوقيع</button></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-gold" onclick="issueVoucher()">🖨️ إصدار وطباعة</button>
+      <button class="btn btn-blue" onclick="sendVoucherWA()">📲 WhatsApp</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hd">📋 سجل السندات</div>
+    <div id="voucher-list"><div class="empty">لا توجد سندات بعد</div></div>
+  </div>
+</div>
+
+<!-- ══ MUKHALSAH ══ -->
+<div class="page" id="p-mukhalsah">
+  <div class="card">
+    <div class="card-hd">📄 إصدار مخالصة</div>
+    <div class="fg">
+      <div class="fl full"><label>اسم المقاول / العامل (السيد)</label><input type="text" id="m-name" placeholder="الاسم الكامل"></div>
+      <div class="fl"><label>رقم البطاقة المدنية</label><input type="text" id="m-civil" placeholder="رقم الهوية"></div>
+      <div class="fl"><label>رقم الهاتف</label><input type="tel" id="m-phone" dir="ltr"></div>
+      <div class="fl"><label>المشروع / ورشة البناء</label><select id="m-proj"><option value="">-- اختر --</option></select></div>
+      <div class="fl"><label>المبلغ الإجمالي (KD)</label><input type="number" id="m-amount" placeholder="0.000" step="0.001"></div>
+      <div class="fl full"><label>البنود والأعمال المنجزة</label><textarea id="m-work" placeholder="اذكر تفاصيل الأعمال..."></textarea></div>
+      <div class="fl"><label>تاريخ الإصدار</label><input type="date" id="m-date"></div>
+      <div class="fl"><label>رقم المخالصة</label><input type="text" id="m-ref"></div>
+    </div>
+    <div style="margin-top:12px;">
+      <label style="display:block;margin-bottom:6px;">توقيع المقاول / العامل</label>
+      <canvas class="sig-pad" id="sigM" width="500" height="100" style="width:100%;"></canvas>
+      <div class="btn-row"><button class="btn btn-ghost btn-sm" onclick="clearSig('sigM')">مسح التوقيع</button></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-gold" onclick="issueMukhalsah()">📄 إصدار وطباعة</button>
+      <button class="btn btn-blue" onclick="sendMukhalsahWA()">📲 WhatsApp</button>
+      <button class="btn btn-ghost btn-sm" onclick="saveMukhalsahOnly()">💾 حفظ فقط</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hd">📋 سجل المخالصات</div>
+    <div id="mukh-list"><div class="empty">لا توجد مخالصات بعد</div></div>
+  </div>
+</div>
+
+<!-- ══ CONTRACTORS ══ -->
+<div class="page" id="p-contractors">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div class="card-hd" style="margin:0;border:none;padding:0;">👷 دفتر المقاولين والموردين</div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-blue btn-sm" onclick="openScanCon()">📷 مسح هوية</button>
+        <button class="btn btn-gold btn-sm" onclick="openConModal()">+ يدوي</button>
+      </div>
+    </div>
+    <input type="text" class="search-input" placeholder="🔍 بحث في المقاولين..." oninput="renderCons(this.value)">
+    <div id="con-list"></div>
+  </div>
+  <div class="card">
+    <div class="card-hd">📋 تسويات مقاولي الباطن <button class="btn btn-gold btn-sm" onclick="openTaswiyaModal()">+ تسوية</button></div>
+    <div id="taswiya-list"><div class="empty">لا توجد تسويات</div></div>
+  </div>
+</div>
+
+<!-- ══ WORKERS ══ -->
+<div class="page" id="p-workers">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div class="card-hd" style="margin:0;border:none;padding:0;">🧱 سجل العمال</div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-blue btn-sm" onclick="openScanWorker()">📷 مسح هوية</button>
+        <button class="btn btn-gold btn-sm" onclick="openWorkerModal()">+ يدوي</button>
+      </div>
+    </div>
+    <div class="pills" id="wPills">
+      <div class="pill on" onclick="filterWorkers('all',this)">الكل</div>
+      <div class="pill" onclick="filterWorkers('دائم',this)">عمال الشركة (دائمون)</div>
+      <div class="pill" onclick="filterWorkers('خارجي',this)">عمال خارجيون</div>
+    </div>
+    <div id="worker-list"></div>
+  </div>
+  <div class="card">
+    <div class="card-hd">📅 تسجيل حضور / يومية</div>
+    <div class="fg">
+      <div class="fl"><label>التاريخ</label><input type="date" id="att-date"></div>
+      <div class="fl"><label>المشروع</label><select id="att-proj"></select></div>
+      <div class="fl"><label>العامل</label><select id="att-worker"></select></div>
+      <div class="fl"><label>عدد الأيام / الوحدات</label><input type="number" id="att-days" value="1" step="0.5" min="0"></div>
+      <div class="fl"><label>الأجر (KD)</label><input type="number" id="att-wage" placeholder="0.000" step="0.001"></div>
+      <div class="fl full"><label>ملاحظات / نوع العمل</label><input type="text" id="att-notes"></div>
+    </div>
+    <div class="btn-row"><button class="btn btn-gold" onclick="saveAttendance()">💾 حفظ</button></div>
+  </div>
+  <div class="card">
+    <div class="card-hd">📋 سجل الحضور</div>
+    <div class="tbl-wrap">
+      <table><thead><tr><th>التاريخ</th><th>المشروع</th><th>العامل</th><th>الأيام</th><th>الأجر</th><th>الإجمالي KD</th><th></th></tr></thead>
+      <tbody id="att-body"></tbody></table>
+    </div>
+    <div style="margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--text3);">إجمالي الرواتب: <strong id="att-tot" style="color:var(--green2)">0.000</strong> KD</div>
+  </div>
+</div>
+
+<!-- ══ CARS ══ -->
+<div class="page" id="p-cars">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div class="card-hd" style="margin:0;border:none;padding:0;">🚗 سيارات الشركة</div>
+      <button class="btn btn-gold btn-sm" onclick="openCarModal()">+ إضافة سيارة</button>
+    </div>
+    <div id="car-list"><div class="empty">لا توجد سيارات بعد</div></div>
+  </div>
+  <div class="card">
+    <div class="card-hd">🔧 تسجيل مصروف سيارة</div>
+    <div class="fg">
+      <div class="fl"><label>السيارة</label><select id="car-sel"></select></div>
+      <div class="fl"><label>نوع المصروف</label>
+        <select id="car-exp-type">
+          <option value="وقود">وقود / بنزين</option>
+          <option value="صيانة">صيانة دورية</option>
+          <option value="إصلاح">إصلاح</option>
+          <option value="تأمين">تأمين</option>
+          <option value="ترخيص">تجديد ترخيص</option>
+          <option value="غسيل">غسيل وتنظيف</option>
+          <option value="أخرى">مصروف آخر</option>
+        </select>
+      </div>
+      <div class="fl"><label>التاريخ</label><input type="date" id="car-date"></div>
+      <div class="fl"><label>المبلغ (KD)</label><input type="number" id="car-amount" placeholder="0.000" step="0.001"></div>
+      <div class="fl full"><label>ملاحظات</label><input type="text" id="car-notes" placeholder="تفاصيل المصروف"></div>
+    </div>
+    <div class="btn-row"><button class="btn btn-gold" onclick="saveCarExpense()">💾 حفظ</button></div>
+  </div>
+  <div class="card">
+    <div class="card-hd">📋 سجل مصاريف السيارات</div>
+    <div id="car-exp-list"><div class="empty">لا توجد مصاريف بعد</div></div>
+  </div>
+</div>
+
+<!-- ══ ACCOUNTS ══ -->
+<div class="page" id="p-accounts">
+  <div class="card">
+    <div class="card-hd">🌳 شجرة الحسابات</div>
+    <input type="text" class="search-input" id="acc-search" placeholder="🔍 ابحث في البنود (مثال: خرسانة، حديد، صحي...)" oninput="renderAccounts()">
+    <div class="pills" id="accPills">
+      <div class="pill on" onclick="filterAcc('all',this)">الكل</div>
+      <div class="pill" onclick="filterAcc('100',this)">إدارية</div>
+      <div class="pill" onclick="filterAcc('200',this)">إيرادات</div>
+      <div class="pill" onclick="filterAcc('1000',this)">م1: حفر</div>
+      <div class="pill" onclick="filterAcc('2000',this)">م2: هيكل</div>
+      <div class="pill" onclick="filterAcc('3000',this)">م3: عازل/مباني</div>
+      <div class="pill" onclick="filterAcc('4000',this)">م4: صحي/كهرباء</div>
+      <div class="pill" onclick="filterAcc('5000',this)">م5: تشطيب</div>
+      <div class="pill" onclick="filterAcc('6000',this)">م6: خارجية</div>
+      <div class="pill" onclick="filterAcc('7000',this)">م7: صباغة</div>
+      <div class="pill" onclick="filterAcc('8000',this)">م8: تكييف/مصاعد</div>
+      <div class="pill" onclick="filterAcc('9000',this)">م9: تسليم</div>
+    </div>
+    <div id="acc-tree"></div>
+  </div>
+</div>
+
+<!-- ══ REPORTS ══ -->
+<div class="page" id="p-reports">
+  <div class="stats">
+    <div class="stat"><div class="slbl">إجمالي الإيرادات</div><div class="sval gr" id="r-income">0.000</div><div class="ssub">KD</div></div>
+    <div class="stat"><div class="slbl">إجمالي المصروفات</div><div class="sval r" id="r-expense">0.000</div><div class="ssub">KD</div></div>
+    <div class="stat"><div class="slbl">صافي الربح الكلي</div><div class="sval b" id="r-profit">0.000</div><div class="ssub">KD</div></div>
+    <div class="stat"><div class="slbl">مصاريف المكتب</div><div class="sval g" id="r-office">0.000</div><div class="ssub">KD</div></div>
+  </div>
+  <div class="card">
+    <div class="card-hd">💰 الأرباح اللحظية لكل مشروع</div>
+    <div id="r-projs-profit"></div>
+  </div>
+  <div class="card">
+    <div class="card-hd">📊 فلترة التقارير</div>
+    <div class="fg">
+      <div class="fl"><label>المشروع</label><select id="r-proj-filter"><option value="">الكل</option></select></div>
+      <div class="fl"><label>الشهر</label><input type="month" id="r-month-filter"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-gold" onclick="renderReports()">🔍 عرض</button>
+      <button class="btn btn-green" onclick="exportExcel()">⬇️ Excel</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hd">📋 تفاصيل المصروفات</div>
+    <div id="r-details"></div>
+  </div>
+</div>
+
+<!-- ══ SETTINGS ══ -->
+<div class="page" id="p-settings">
+  <div class="card">
+    <div class="card-hd">☁️ حفظ البيانات</div>
+    <p style="font-size:12px;color:var(--text3);line-height:1.8;margin-bottom:12px;">احفظ بياناتك على Google Drive أو استوردها من ملف JSON.</p>
+    <div class="btn-row">
+      <button class="btn btn-gold" onclick="cloudSave()">⬇️ تصدير JSON</button>
+      <button class="btn btn-blue" onclick="driveLoad()">☁️ تحميل من Drive</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('importFile').click()">⬆️ استيراد ملف</button>
+      <button class="btn btn-green" onclick="exportExcel()">📊 Excel</button>
+    </div>
+    <input type="file" id="importFile" accept=".json" onchange="importData(this)" style="display:none">
+  </div>
+  <div class="card">
+    <div class="card-hd">👥 المستخدمون <button class="btn btn-gold btn-sm" onclick="openUserModal()">+ إضافة</button></div>
+    <div id="user-list"></div>
+  </div>
+  <div class="card">
+    <div class="card-hd">🏢 بيانات الشركة</div>
+    <div class="fg">
+      <div class="fl full"><label>الاسم (عربي)</label><input type="text" id="co-ar" value="شركة داركم للتجارة العامة والمقاولات"></div>
+      <div class="fl full"><label>Company Name (English)</label><input type="text" id="co-en" value="Darcom For Trading and Contracting Co." dir="ltr"></div>
+      <div class="fl"><label>الهاتف</label><input type="tel" id="co-phone" dir="ltr"></div>
+      <div class="fl"><label>العنوان</label><input type="text" id="co-addr" value="الكويت"></div>
+    </div>
+    <div class="btn-row"><button class="btn btn-gold" onclick="saveCompanyInfo()">💾 حفظ</button></div>
+  </div>
+  <div class="card" style="border-color:var(--red);">
+    <div class="card-hd" style="color:var(--red2);">⚠️ منطقة الخطر</div>
+    <div class="btn-row"><button class="btn btn-red" onclick="clearAllData()">🗑️ حذف جميع البيانات</button></div>
+  </div>
+</div>
+
+</div><!-- scroll -->
+</div><!-- app -->
+
+<!-- PRINT AREA -->
+<div id="printArea" style="display:none;"></div>
+
+<!-- ═══ MODALS ═══ -->
+
+<!-- New Project -->
+<div class="overlay" id="projModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📁 مشروع جديد</div>
+    <div class="fg">
+      <div class="fl full"><label>اسم المشروع</label><input type="text" id="pm-name" placeholder="مثال: فيلا أبو فطيرة"></div>
+      <div class="fl"><label>كود</label><input type="text" id="pm-code" placeholder="P001"></div>
+      <div class="fl"><label>نوع المشروع</label>
+        <select id="pm-type"><option value="فيلا">فيلا 🏡</option><option value="عمارة">عمارة 🏢</option><option value="تجاري">تجاري 🏪</option><option value="مسجد">مسجد 🕌</option><option value="تسليم مفتاح">تسليم مفتاح 🔑</option><option value="هيكل أسود">هيكل أسود 🏗</option><option value="تشطيب فقط">تشطيب فقط 🎨</option><option value="صيانة">صيانة 🔧</option></select>
+      </div>
+      <div class="fl"><label>نوع العقد</label>
+        <select id="pm-contract"><option value="Cost+">Cost+ (تكلفة+ربح)</option><option value="Lump Sum">Lump Sum (مقطوع)</option><option value="Unit Price">Unit Price (وحدة)</option></select>
+      </div>
+      <div class="fl full"><label>الموقع</label><input type="text" id="pm-loc" placeholder="مثال: الحوزة، القطعة 12"></div>
+      <div class="fl full"><label>العميل / المالك</label><input type="text" id="pm-client"></div>
+      <div class="fl"><label>تاريخ البدء</label><input type="date" id="pm-start"></div>
+      <div class="fl"><label>تاريخ التسليم</label><input type="date" id="pm-end"></div>
+      <div class="fl"><label>قيمة العقد (KD)</label><input type="number" id="pm-value" step="0.001"></div>
+      <div class="fl"><label>الميزانية (KD)</label><input type="number" id="pm-budget" step="0.001"></div>
+      <div class="fl full"><label>ملاحظات</label><textarea id="pm-notes"></textarea></div>
+    </div>
+    <div class="btn-row"><button class="btn btn-gold" onclick="saveProject()">💾 حفظ</button><button class="btn btn-ghost" onclick="closeM('projModal')">إلغاء</button></div>
+  </div>
+</div>
+
+<!-- Add Contractor -->
+<div class="overlay" id="conModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">👷 إضافة مقاول / مورد</div>
+    <div class="fg">
+      <div class="fl full"><label>الاسم الكامل</label><input type="text" id="c-name"></div>
+      <div class="fl"><label>رقم البطاقة المدنية</label><input type="text" id="c-civil" placeholder="اختياري"></div>
+      <div class="fl"><label>الكود</label><input type="text" id="c-code"></div>
+      <div class="fl"><label>التصنيف</label><select id="c-type"><option value="مقاول باطن">مقاول باطن</option><option value="مورد مواد">مورد مواد</option><option value="مقاول عام">مقاول عام</option><option value="مكتب هندسي">مكتب هندسي</option></select></div>
+      <div class="fl full"><label>التخصص</label><input type="text" id="c-spec"></div>
+      <div class="fl"><label>الهاتف</label><input type="tel" id="c-phone" dir="ltr"></div>
+      <div class="fl"><label>البند الرئيسي</label><select id="c-cat"><option value="">-- اختر --</option></select></div>
+    </div>
+    <div class="btn-row"><button class="btn btn-gold" onclick="saveCon()">💾 حفظ</button><button class="btn btn-ghost" onclick="closeM('conModal')">إلغاء</button></div>
+  </div>
+</div>
+
+<!-- Scan ID for Contractor -->
+<div class="overlay" id="scanConModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📷 مسح بطاقة مدنية — مقاول</div>
+    <div class="scan-zone" onclick="document.getElementById('conIdFile').click()">
+      <div style="font-size:36px;margin-bottom:8px;">🪪</div>
+      <div style="font-size:13px;color:var(--text3)"><strong style="color:var(--gold)">اضغط لرفع صورة البطاقة</strong><br>JPG · PNG</div>
+    </div>
+    <input type="file" id="conIdFile" accept="image/*" capture="environment" onchange="scanConId(this)" style="display:none">
+    <div class="aibox proc" id="conIdProc"><div style="display:flex;align-items:center;gap:10px;justify-content:center;"><div class="spinner"></div><span style="font-size:13px;color:var(--blue);font-weight:700;">جاري استخراج البيانات...</span></div></div>
+    <div id="conIdResult" style="display:none;">
+      <div style="font-weight:800;color:var(--green2);margin-bottom:10px;">✅ تم استخراج البيانات</div>
+      <div class="fg">
+        <div class="fl full"><label>الاسم</label><input type="text" id="ci-name"></div>
+        <div class="fl"><label>رقم البطاقة المدنية</label><input type="text" id="ci-civil"></div>
+        <div class="fl"><label>الجنسية</label><input type="text" id="ci-nat"></div>
+        <div class="fl"><label>الكود</label><input type="text" id="ci-code"></div>
+        <div class="fl"><label>التصنيف</label><select id="ci-type"><option value="مقاول باطن">مقاول باطن</option><option value="مورد مواد">مورد مواد</option><option value="مقاول عام">مقاول عام</option></select></div>
+        <div class="fl full"><label>التخصص</label><input type="text" id="ci-spec"></div>
+        <div class="fl"><label>الهاتف</label><input type="tel" id="ci-phone" dir="ltr"></div>
+        <div class="fl"><label>البند</label><select id="ci-cat"><option value="">-- اختر --</option></select></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-gold" onclick="saveScannedCon()">💾 حفظ</button><button class="btn btn-ghost" onclick="closeM('scanConModal')">إلغاء</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- Scan ID for Worker -->
+<div class="overlay" id="scanWorkerModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📷 مسح بطاقة مدنية — عامل</div>
+    <div class="scan-zone" onclick="document.getElementById('workerIdFile').click()">
+      <div style="font-size:36px;margin-bottom:8px;">🪪</div>
+      <div style="font-size:13px;color:var(--text3)"><strong style="color:var(--gold)">اضغط لرفع صورة البطاقة</strong><br>JPG · PNG</div>
+    </div>
+    <input type="file" id="workerIdFile" accept="image/*" capture="environment" onchange="scanWorkerId(this)" style="display:none">
+    <div class="aibox proc" id="workerIdProc"><div style="display:flex;align-items:center;gap:10px;justify-content:center;"><div class="spinner"></div><span style="font-size:13px;color:var(--blue);font-weight:700;">جاري استخراج البيانات...</span></div></div>
+    <div id="workerIdResult" style="display:none;">
+      <div style="font-weight:800;color:var(--green2);margin-bottom:10px;">✅ تم استخراج البيانات</div>
+      <div class="fg">
+        <div class="fl full"><label>الاسم</label><input type="text" id="wi-name"></div>
+        <div class="fl"><label>رقم البطاقة المدنية</label><input type="text" id="wi-civil"></div>
+        <div class="fl"><label>الجنسية</label><input type="text" id="wi-nat"></div>
+        <div class="fl"><label>الكود</label><input type="text" id="wi-code"></div>
+        <div class="fl"><label>نوع العامل</label><select id="wi-wtype"><option value="دائم">عامل الشركة (دائم)</option><option value="خارجي">عامل خارجي (مؤقت)</option></select></div>
+        <div class="fl full"><label>التخصص</label><input type="text" id="wi-spec"></div>
+        <div class="fl"><label>الأجر اليومي (KD)</label><input type="number" id="wi-wage" step="0.001"></div>
+        <div class="fl"><label>الهاتف</label><input type="tel" id="wi-phone" dir="ltr"></div>
+        <div class="fl"><label>تاريخ انتهاء الإقامة</label><input type="date" id="wi-iqama"></div>
+        <div class="fl"><label>تاريخ انتهاء الجواز</label><input type="date" id="wi-passport"></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-gold" onclick="saveScannedWorker()">💾 حفظ</button><button class="btn btn-ghost" onclick="closeM('scanWorkerModal')">إلغاء</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Worker -->
+<div class="overlay" id="workerModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🧱 إضافة عامل</div>
+    <div class="fg">
+      <div class="fl full"><label>الاسم الكامل</label><input type="text" id="w-name"></div>
+      <div class="fl"><label>الكود</label><input type="text" id="w-code"></div>
+      <div class="fl"><label>نوع العامل</label><select id="w-wtype"><option value="دائم">عامل الشركة (دائم)</option><option value="خارجي">عامل خارجي (مؤقت)</option></select></div>
+      <div class="fl"><label>الجنسية</label><input type="text" id="w-nat"></div>
+      <div class="fl full"><label>التخصص</label><input type="text" id="w-spec"></div>
+      <div class="fl"><label>الأجر اليومي (KD)</label><input type="number" id="w-wage" step="0.001"></div>
+      <div class="fl"><label>رقم البطاقة المدنية</label><input type="text" id="w-civil"></div>
+      <div class="fl"><label>الهاتف</label><input type="tel" id="w-phone" dir="ltr"></div>
+      <div class="fl"><label>تاريخ انتهاء الإقامة</label><input type="date" id="w-iqama"></div>
+      <div class="fl"><label>تاريخ انتهاء الجواز</label><input type="date" id="w-passport"></div>
+    </div>
+    <div class="btn-row"><button class="btn btn-gold" onclick="saveWorker()">💾 حفظ</button><button class="btn btn-ghost" onclick="closeM('workerModal')">إلغاء</button></div>
+  </div>
+</div>
+
+<!-- Taswiya -->
+<div class="overlay" id="taswiyaModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📋 تسوية مقاول الباطن</div>
+    <div class="fg">
+      <div class="fl"><label>المقاول</label><select id="t-con"><option value="">-- اختر --</option></select></div>
+      <div class="fl"><label>المشروع</label><select id="t-proj"><option value="">-- اختر --</option></select></div>
+      <div class="fl"><label>نوع التسوية</label><select id="t-type"><option value="اضافة">إضافة للعقد ➕</option><option value="خصم">خصم من العقد ➖</option><option value="الغاء">إلغاء بند ❌</option></select></div>
+      <div class="fl"><label>المبلغ (KD)</label><input type="number" id="t-amount" step="0.001"></div>
+      <div class="fl full"><label>البند / الوصف</label><textarea id="t-desc"></textarea></div>
+      <div class="fl"><label>التاريخ</label><input type="date" id="t-date"></div>
+    </div>
+    <div class="btn-row"><button class="btn btn-gold" onclick="saveTaswiya()">💾 حفظ</button><button class="btn btn-ghost" onclick="closeM('taswiyaModal')">إلغاء</button></div>
+  </div>
+</div>
+
+<!-- Car Modal -->
+<div class="overlay" id="carModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🚗 إضافة سيارة</div>
+    <div class="fg">
+      <div class="fl full"><label>نوع السيارة</label><input type="text" id="car-name" placeholder="مثال: تويوتا لاندكروزر 2020"></div>
+      <div class="fl"><label>رقم اللوحة</label><input type="text" id="car-plate" dir="ltr"></div>
+      <div class="fl"><label>رقم الشاسيه</label><input type="text" id="car-chassis" dir="ltr" placeholder="اختياري"></div>
+      <div class="fl"><label>تاريخ انتهاء التأمين ⚠️</label><input type="date" id="car-ins-exp"></div>
+      <div class="fl"><label>تاريخ انتهاء الترخيص ⚠️</label><input type="date" id="car-lic-exp"></div>
+      <div class="fl"><label>الاستخدام</label><select id="car-use"><option value="موقع">موقع بناء</option><option value="إداري">إداري</option><option value="مشترك">مشترك</option></select></div>
+    </div>
+    <div class="btn-row"><button class="btn btn-gold" onclick="saveCar()">💾 حفظ</button><button class="btn btn-ghost" onclick="closeM('carModal')">إلغاء</button></div>
+  </div>
+</div>
+
+<!-- Inkaz -->
+<div class="overlay" id="inkazModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📈 تحديث نسبة الإنجاز</div>
+    <div class="fg">
+      <div class="fl"><label>المشروع</label><select id="ik-proj"></select></div>
+      <div class="fl"><label>البند / المرحلة</label><select id="ik-cat"></select></div>
+      <div class="fl full"><label>نسبة الإنجاز %</label><input type="number" id="ik-pct" min="0" max="100" placeholder="0"></div>
+      <div class="fl full"><label>ملاحظة</label><input type="text" id="ik-notes"></div>
+    </div>
+    <div class="btn-row"><button class="btn btn-gold" onclick="saveInkaz()">💾 حفظ</button><button class="btn btn-ghost" onclick="closeM('inkazModal')">إلغاء</button></div>
+  </div>
+</div>
+
+<!-- Project Detail -->
+<div class="overlay" id="detailModal">
+  <div class="modal"><div class="modal-handle"></div><div id="detailContent"></div></div>
+</div>
+
+<!-- Delete Password Confirm -->
+<div class="overlay" id="deleteModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" style="color:var(--red2);">⚠️ تأكيد الحذف</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">أدخل كلمة مرور المستخدم للتأكيد</p>
+    <div class="fl"><label>كلمة المرور</label><input type="password" id="del-pass" placeholder="كلمة المرور"></div>
+    <div class="login-err" id="del-err"></div>
+    <div class="btn-row"><button class="btn btn-red" onclick="confirmDelete()">تأكيد الحذف</button><button class="btn btn-ghost" onclick="closeM('deleteModal')">إلغاء</button></div>
+  </div>
+</div>
+
+<!-- Add User -->
+<div class="overlay" id="userModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">👤 إضافة مستخدم</div>
+    <div class="fg">
+      <div class="fl full"><label>الاسم</label><input type="text" id="u-name"></div>
+      <div class="fl"><label>اسم المستخدم</label><input type="text" id="u-user" dir="ltr"></div>
+      <div class="fl"><label>كلمة المرور</label><input type="password" id="u-pass" dir="ltr"></div>
+      <div class="fl full"><label>الصلاحية</label><select id="u-role"><option value="admin">مدير — كامل</option><option value="accountant">محاسب — إدخال وتقارير</option><option value="viewer">مشاهد فقط</option></select></div>
+    </div>
+    <div class="btn-row"><button class="btn btn-gold" onclick="saveUser()">💾 حفظ</button><button class="btn btn-ghost" onclick="closeM('userModal')">إلغاء</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+// CHART OF ACCOUNTS — Complete from Excel file
+// ══════════════════════════════════════════════
+const ACCOUNTS = [
+  // مجموعة 100 — إدارية
+  {c:'100',n:'المصاريف الإدارية العامة',g:'100',main:true},
+  {c:'101',n:'رواتب عمال الموقع',g:'100',u:'شهر'},
+  {c:'102',n:'رواتب إدارية',g:'100',u:'شهر'},
+  {c:'103',n:'مصروفات نثرية إدارية',g:'100'},
+  {c:'104',n:'مصروفات بنكية',g:'100'},
+  {c:'105',n:'مصروفات سيارات (عامة)',g:'100',u:'شهر'},
+  {c:'106',n:'إيجار المكتب',g:'100',u:'شهر'},
+  {c:'107',n:'مصاريف رخصة الشركة والتراخيص',g:'100'},
+  {c:'108',n:'ضمانات وكفالات العقد',g:'100'},
+  {c:'110',n:'حساب العهدات',g:'100',main:true},
+  {c:'111',n:'عهدة مراقب الموقع (1)',g:'100',u:'مبلغ'},
+  {c:'112',n:'عهدة مراقب الموقع (2)',g:'100',u:'مبلغ'},
+  {c:'113',n:'عهدة مراقب الموقع (3)',g:'100',u:'مبلغ'},
+  {c:'114',n:'عهدة المساح',g:'100',u:'مبلغ'},
+  {c:'115',n:'عهدة مقاول صحي',g:'100',u:'مبلغ'},
+  {c:'116',n:'عهدات أخرى',g:'100',u:'مبلغ'},
+  {c:'120',n:'مصروفات موقع عامة',g:'100',main:true},
+  {c:'121',n:'إيجار سيارة الموقع',g:'100',u:'شهر'},
+  {c:'122',n:'طعام عمال الموقع',g:'100',u:'شهر'},
+  {c:'123',n:'مواصلات عمال الموقع',g:'100',u:'شهر'},
+  {c:'124',n:'إشراف هندسي',g:'100',u:'شهر'},
+  {c:'125',n:'نظافة - حارس - كهرباء - مياه الموقع',g:'100'},
+  {c:'126',n:'إزالة أنقاض ومخلفات (مستمرة)',g:'100',u:'رحلة'},
+  {c:'127',n:'تشوين مواد ومعدات',g:'100',u:'شهر'},
+  {c:'128',n:'يوميات مقطوعية ومصاريف متنوعة',g:'100'},
+  {c:'129',n:'رمل مشترك لجميع البنود',g:'100',u:'م³'},
+  {c:'130',n:'تراخيص المشروع',g:'100'},
+  {c:'131',n:'مصاريف نثرية المشروع',g:'100'},
+  {c:'140',n:'المصروفات خارج العقد',g:'100',main:true},
+  {c:'141',n:'سقالة (إيجار / شراء)',g:'100'},
+  {c:'142',n:'حارس إكرامية',g:'100'},
+  {c:'143',n:'إقامات الموظفين',g:'100'},
+  {c:'144',n:'مصاريف خارج العقد أخرى',g:'100'},
+  // مجموعة 200 — إيرادات
+  {c:'200',n:'إيرادات المشروع',g:'200',main:true},
+  {c:'201',n:'دفعة واردة — تحويل بنكي',g:'200',income:true},
+  {c:'202',n:'دفعة واردة — رابط بنكي',g:'200',income:true},
+  {c:'203',n:'دفعة واردة — نقداً',g:'200',income:true},
+  {c:'204',n:'دفعة واردة — شيك',g:'200',income:true},
+  {c:'205',n:'دفعة مستخلص مرحلي',g:'200',income:true},
+  {c:'206',n:'دفعة ضمان حسن التنفيذ (استرداد)',g:'200',income:true},
+  // مجموعة 1000 — حفر
+  {c:'1000',n:'أعمال الحفر والتمهيد',g:'1000',main:true},
+  {c:'1001',n:'أعمال حفر — مقاول',g:'1000',u:'م³'},
+  {c:'1002',n:'أعمال حفر — يوميات',g:'1000',u:'يوم عمل'},
+  {c:'1003',n:'معدات الحفر (إيجار)',g:'1000',u:'يوم'},
+  {c:'1004',n:'دفان رمل',g:'1000',u:'م³'},
+  {c:'1005',n:'أعمال دفان — مقاول',g:'1000',u:'م³'},
+  {c:'1006',n:'أعمال دفان — يوميات',g:'1000'},
+  {c:'1007',n:'معدات الدفان (إيجار)',g:'1000'},
+  {c:'1008',n:'ترحيل تراب وفضلات الحفر',g:'1000',u:'رحلة'},
+  {c:'1009',n:'أعمال الصرف المؤقت',g:'1000'},
+  {c:'1010',n:'تسوية الأرضية قبل البناء',g:'1000',u:'م²'},
+  {c:'1020',n:'أعمال التكسير والإزالة',g:'1000',main:true},
+  {c:'1021',n:'تكسير وإزالة — يوميات',g:'1000'},
+  {c:'1022',n:'تكسير وإزالة — مقاول',g:'1000',u:'م³'},
+  {c:'1023',n:'معدات وآلات التكسير (إيجار)',g:'1000'},
+  {c:'1024',n:'نظافة وترحيل مخلفات التكسير',g:'1000',u:'رحلة'},
+  {c:'1025',n:'مصروفات أخرى — تكسير',g:'1000'},
+  // مجموعة 2000 — هيكل
+  {c:'2000',n:'أعمال الخرسانة',g:'2000',main:true},
+  {c:'2001',n:'خرسانة جاهزة (ليفان/مضخة)',g:'2000',u:'م³'},
+  {c:'2002',n:'مواد خرسانة (حصى-رمل-اسمنت)',g:'2000',u:'م³'},
+  {c:'2003',n:'حديد تسليح (توريد)',g:'2000',u:'طن'},
+  {c:'2004',n:'تركيب حديد تسليح — يوميات',g:'2000'},
+  {c:'2005',n:'تركيب حديد تسليح — مقاول',g:'2000',u:'طن'},
+  {c:'2006',n:'خرسانة سكريت (أرضية ميلان)',g:'2000',u:'م³'},
+  {c:'2007',n:'أعمال إضافية خرسانة',g:'2000'},
+  {c:'2010',n:'نجارة الهيكل الأسود',g:'2000',main:true},
+  {c:'2011',n:'نجارة هيكل — مقاول',g:'2000',u:'م²'},
+  {c:'2012',n:'نجارة مسلحة — يوميات',g:'2000'},
+  {c:'2013',n:'ألواح خشب ومواد النجارة',g:'2000'},
+  {c:'2014',n:'جاكات حديد وملازم وزراجين',g:'2000'},
+  {c:'2015',n:'تأجير معدات النجارة',g:'2000'},
+  {c:'2016',n:'مصروفات أخرى — نجارة',g:'2000'},
+  {c:'2020',n:'أعمال الهوردي',g:'2000',main:true},
+  {c:'2021',n:'هوردي — مقاول (تركيب)',g:'2000',u:'م²'},
+  {c:'2022',n:'مواد هوردي (بلوكات-خرسانة)',g:'2000'},
+  {c:'2030',n:'حدادة الهيكل الأسود',g:'2000',main:true},
+  {c:'2031',n:'حدادة هيكل — مقاول',g:'2000',u:'طن'},
+  {c:'2032',n:'حدادة هيكل — يوميات',g:'2000'},
+  {c:'2033',n:'مواد ومعدات الحدادة',g:'2000'},
+  {c:'2040',n:'توريد حديد الهيكل',g:'2000',main:true},
+  {c:'2041',n:'مشتريات حديد التسليح الكلي',g:'2000',u:'طن'},
+  {c:'2042',n:'نقل وشحن الحديد',g:'2000',u:'رحلة'},
+  // مجموعة 3000 — عازل ومباني
+  {c:'3000',n:'أعمال العازل',g:'3000',main:true},
+  {c:'3001',n:'تركيب عازل — مقاول',g:'3000',u:'م²'},
+  {c:'3002',n:'تركيب عازل — يوميات',g:'3000'},
+  {c:'3003',n:'مواد العازل (لفات-رول)',g:'3000',u:'م²'},
+  {c:'3004',n:'فوم عازل',g:'3000',u:'م²'},
+  {c:'3005',n:'عزل رطوبة أدوار',g:'3000',u:'م²'},
+  {c:'3006',n:'خرسانة حماية العازل (سكريت)',g:'3000',u:'م³'},
+  {c:'3007',n:'مستلزمات أخرى — عازل',g:'3000'},
+  {c:'3010',n:'أعمال المباني (الطابوق)',g:'3000',main:true},
+  {c:'3011',n:'مصنعية مباني — مقاول',g:'3000',u:'م²'},
+  {c:'3012',n:'مصنعية مباني — يوميات',g:'3000'},
+  {c:'3013',n:'طابوق أسود',g:'3000'},
+  {c:'3014',n:'طابوق أبيض',g:'3000'},
+  {c:'3015',n:'اسمنت للمباني',g:'3000',u:'طن'},
+  {c:'3016',n:'رمل للمباني',g:'3000',u:'م³'},
+  {c:'3017',n:'صلبوخ للمباني',g:'3000',u:'م³'},
+  {c:'3018',n:'شبك-مسامير-شرماط',g:'3000'},
+  {c:'3019',n:'معدات المباني',g:'3000'},
+  // مجموعة 4000 — صحي وكهرباء
+  {c:'4000',n:'الأعمال الصحية',g:'4000',main:true},
+  {c:'4001',n:'أعمال صحية كاملة — مقاول',g:'4000',u:'نقطة'},
+  {c:'4002',n:'تمديدات مجاري صرف',g:'4000',u:'م.ط'},
+  {c:'4003',n:'بايبات أخضر صحي',g:'4000',u:'م.ط'},
+  {c:'4004',n:'ملحقات بايبات صحية',g:'4000'},
+  {c:'4005',n:'أطقم صحية (مرحاض-حوض-دش)',g:'4000',u:'طقم'},
+  {c:'4006',n:'خزانات مياه (علوي/أرضي)',g:'4000',u:'قطعة'},
+  {c:'4007',n:'مضخة مياه',g:'4000',u:'قطعة'},
+  {c:'4008',n:'مواد صحية متنوعة',g:'4000'},
+  {c:'4009',n:'مصروفات أخرى — صحي',g:'4000'},
+  {c:'4010',n:'الأعمال الكهربائية',g:'4000',main:true},
+  {c:'4011',n:'أعمال كهربائية كاملة — مقاول',g:'4000',u:'نقطة'},
+  {c:'4012',n:'يوميات كهربائي',g:'4000'},
+  {c:'4013',n:'بايبات كهرباء (PVC)',g:'4000',u:'م.ط'},
+  {c:'4014',n:'كابلات كهرباء',g:'4000',u:'م.ط'},
+  {c:'4015',n:'مفاتيح وأفياش',g:'4000',u:'قطعة'},
+  {c:'4016',n:'لوح كهرباء رئيسي (بريكرات)',g:'4000',u:'قطعة'},
+  {c:'4017',n:'صناديق توزيع كهرباء',g:'4000'},
+  {c:'4018',n:'أجهزة الإنارة (تجهيز)',g:'4000',u:'قطعة'},
+  {c:'4019',n:'مخطط كهرباء وإشراف هندسي',g:'4000'},
+  {c:'4020',n:'نظام الكاميرات وملحقاتها',g:'4000',u:'نقطة'},
+  {c:'4021',n:'نظام الإنذار (حريق/سطو)',g:'4000'},
+  {c:'4022',n:'مصروفات كهربائية أخرى',g:'4000'},
+  // مجموعة 5000 — تشطيب
+  {c:'5000',n:'المساح الداخلي',g:'5000',main:true},
+  {c:'5001',n:'مساح داخلي — مقاول',g:'5000',u:'م²'},
+  {c:'5002',n:'مساح داخلي — يوميات',g:'5000'},
+  {c:'5003',n:'اسمنت ورمل للمساح الداخلي',g:'5000',u:'طن'},
+  {c:'5004',n:'شبك وزوايا مساح داخلي',g:'5000'},
+  {c:'5005',n:'مسامير وواشر وملحقات',g:'5000'},
+  {c:'5006',n:'مادة ربط ومواد خصوصية',g:'5000'},
+  {c:'5007',n:'معدات وآلات المساح',g:'5000'},
+  {c:'5010',n:'المساح الجبسي والجبسبورد',g:'5000',main:true},
+  {c:'5011',n:'مساح جبسي — مقاول',g:'5000',u:'م²'},
+  {c:'5012',n:'مساح جبسي — يوميات',g:'5000'},
+  {c:'5013',n:'مواد الجبس',g:'5000',u:'طن'},
+  {c:'5014',n:'ألواح جبسبورد',g:'5000',u:'م²'},
+  {c:'5015',n:'هياكل جبسبورد (الزنك)',g:'5000',u:'م.ط'},
+  {c:'5016',n:'مصروفات أخرى — جبس',g:'5000'},
+  {c:'5020',n:'أعمال السيراميك',g:'5000',main:true},
+  {c:'5021',n:'تركيب سيراميك — مقاول',g:'5000',u:'م²'},
+  {c:'5022',n:'تركيب سيراميك — يوميات',g:'5000'},
+  {c:'5023',n:'سيراميك أرضيات (توريد)',g:'5000',u:'م²'},
+  {c:'5024',n:'سيراميك جدران (توريد)',g:'5000',u:'م²'},
+  {c:'5025',n:'لاصق سيراميك',g:'5000',u:'كيس'},
+  {c:'5026',n:'شربت سيراميك (فوجة)',g:'5000',u:'كيس'},
+  {c:'5027',n:'زوايا وفواصل وملحقات',g:'5000'},
+  {c:'5028',n:'رمل وصلبوخ للسيراميك',g:'5000',u:'م³'},
+  {c:'5029',n:'اسمنت للسيراميك',g:'5000',u:'كيس'},
+  {c:'5030',n:'معدات ومصروفات — سيراميك',g:'5000'},
+  {c:'5040',n:'أعمال الرخام',g:'5000',main:true},
+  {c:'5041',n:'تركيب رخام — مقاول',g:'5000',u:'م²'},
+  {c:'5042',n:'تركيب رخام — يوميات',g:'5000'},
+  {c:'5043',n:'رخام (توريد)',g:'5000',u:'م²'},
+  {c:'5044',n:'لاصق ومواد تركيب رخام',g:'5000'},
+  {c:'5045',n:'مصروفات أخرى — رخام',g:'5000'},
+  {c:'5050',n:'الأسقف المستعارة',g:'5000',main:true},
+  {c:'5051',n:'تركيب أسقف مستعارة — مقاول',g:'5000',u:'م²'},
+  {c:'5052',n:'مواد الأسقف المستعارة',g:'5000',u:'م²'},
+  {c:'5053',n:'هياكل أسقف مستعارة',g:'5000'},
+  {c:'5060',n:'الأبواب الداخلية',g:'5000',main:true},
+  {c:'5061',n:'أبواب خشب (مع إطار)',g:'5000',u:'م²'},
+  {c:'5062',n:'أبواب حديد (مع إطار)',g:'5000',u:'م²'},
+  {c:'5063',n:'أبواب ألمونيوم داخلية',g:'5000',u:'م²'},
+  {c:'5064',n:'أبواب زجاج (سكريت)',g:'5000',u:'م²'},
+  {c:'5065',n:'شاور بوكس',g:'5000',u:'قطعة'},
+  {c:'5066',n:'إطارات الأبواب والنوافذ',g:'5000'},
+  {c:'5067',n:'أقفال ومقابض وملحقات',g:'5000'},
+  {c:'5070',n:'الديكور الداخلي',g:'5000',main:true},
+  {c:'5071',n:'ديكور — مقاول',g:'5000',u:'م²'},
+  {c:'5072',n:'مواد ديكور',g:'5000'},
+  {c:'5073',n:'أعمال جبس زخرفية (كرانيش-قواطع)',g:'5000'},
+  {c:'5074',n:'مصروفات ديكور أخرى',g:'5000'},
+  // مجموعة 6000 — خارجية
+  {c:'6000',n:'المساح الخارجي',g:'6000',main:true},
+  {c:'6001',n:'مساح خارجي — مقاول',g:'6000',u:'م²'},
+  {c:'6002',n:'مساح خارجي — يوميات',g:'6000'},
+  {c:'6003',n:'اسمنت ورمل وصلبوخ — خارجي',g:'6000',u:'طن'},
+  {c:'6004',n:'شبك وزوايا — خارجي',g:'6000'},
+  {c:'6005',n:'مواد السيجما',g:'6000',u:'كيس'},
+  {c:'6007',n:'مصروفات أخرى — مساح خارجي',g:'6000'},
+  {c:'6010',n:'أعمال الواجهات الخارجية (حجر)',g:'6000',main:true},
+  {c:'6011',n:'تركيب حجر — مقاول',g:'6000',u:'م²'},
+  {c:'6012',n:'تركيب حجر — يوميات',g:'6000'},
+  {c:'6013',n:'حجر طبيعي / صناعي (توريد)',g:'6000',u:'م²'},
+  {c:'6014',n:'لاصق وشربت الحجر',g:'6000'},
+  {c:'6015',n:'تنظيف وحف الحجر',g:'6000'},
+  {c:'6020',n:'النوافذ والأبواب الخارجية',g:'6000',main:true},
+  {c:'6021',n:'نوافذ ألمونيوم',g:'6000',u:'م²'},
+  {c:'6022',n:'أبواب ألمونيوم خارجية',g:'6000',u:'م²'},
+  {c:'6023',n:'شتر كهربائي / يدوي',g:'6000',u:'م²'},
+  {c:'6024',n:'درابزين خارجي',g:'6000'},
+  {c:'6025',n:'بوابات خارجية حديدية',g:'6000',u:'م²'},
+  {c:'6030',n:'أعمال الحدائق والممرات',g:'6000',main:true},
+  {c:'6031',n:'تشكيل وتسوية أرضية الحديقة',g:'6000'},
+  {c:'6032',n:'إنارة خارجية وحديقة',g:'6000'},
+  {c:'6033',n:'ممرات وطرق داخلية',g:'6000',u:'م²'},
+  {c:'6034',n:'مصروفات حدائق أخرى',g:'6000'},
+  // مجموعة 7000 — صباغة
+  {c:'7000',n:'أعمال الصباغة',g:'7000',main:true},
+  {c:'7001',n:'صباغة داخلية — مقاول',g:'7000',u:'م²'},
+  {c:'7002',n:'صباغة داخلية — يوميات',g:'7000'},
+  {c:'7003',n:'دهان خارجي — مقاول',g:'7000',u:'م²'},
+  {c:'7004',n:'دهان خارجي — يوميات',g:'7000'},
+  {c:'7005',n:'مشتريات دهان داخلي',g:'7000',u:'لتر'},
+  {c:'7006',n:'مشتريات دهان خارجي',g:'7000',u:'لتر'},
+  {c:'7007',n:'معجون تسوية جدران',g:'7000',u:'كيس'},
+  {c:'7008',n:'بلاستر وبرايمر',g:'7000'},
+  {c:'7009',n:'مصروفات صباغة أخرى',g:'7000'},
+  // مجموعة 8000 — تكييف ومصاعد
+  {c:'8000',n:'أعمال التكييف',g:'8000',main:true},
+  {c:'8001',n:'تكييف مركزي — مقاول',g:'8000'},
+  {c:'8002',n:'تكييف وحدات — مقاول',g:'8000',u:'قطعة'},
+  {c:'8003',n:'مواسير تكييف وعزل',g:'8000'},
+  {c:'8004',n:'مصروفات تكييف أخرى',g:'8000'},
+  {c:'8010',n:'المصاعد',g:'8000',main:true},
+  {c:'8011',n:'توريد وتركيب المصعد',g:'8000'},
+  {c:'8012',n:'أعمال حفرة المصعد',g:'8000'},
+  {c:'8013',n:'صيانة وعقد خدمة المصعد',g:'8000'},
+  {c:'8020',n:'أعمال المسابح',g:'8000',main:true},
+  {c:'8021',n:'هيكل وخرسانة المسبح',g:'8000'},
+  {c:'8022',n:'عازل المسبح',g:'8000',u:'م²'},
+  {c:'8023',n:'تشطيب مسبح — مقاول',g:'8000',u:'م²'},
+  {c:'8024',n:'مواد تشطيب مسبح',g:'8000'},
+  {c:'8025',n:'نظام فلترة ومضخات المسبح',g:'8000'},
+  {c:'8030',n:'أعمال الطاقة الشمسية',g:'8000',main:true},
+  {c:'8031',n:'ألواح طاقة شمسية',g:'8000'},
+  {c:'8032',n:'بطاريات وعواكس',g:'8000'},
+  // مجموعة 9000 — تسليم
+  {c:'9000',n:'الأجهزة والأثاث',g:'9000',main:true},
+  {c:'9001',n:'أثاث مطبخي وكهربائيات',g:'9000'},
+  {c:'9002',n:'خزائن المطبخ',g:'9000'},
+  {c:'9003',n:'أثاث وخزائن (غرف)',g:'9000'},
+  {c:'9004',n:'ثريات ومعلقات',g:'9000',u:'قطعة'},
+  {c:'9005',n:'ستائر وبلاكين',g:'9000'},
+  {c:'9010',n:'أعمال النظافة والتسليم',g:'9000',main:true},
+  {c:'9011',n:'تنظيف شامل قبل التسليم',g:'9000',u:'م²'},
+  {c:'9012',n:'إزالة مخلفات نهائية',g:'9000',u:'رحلة'},
+  {c:'9013',n:'فحص واختبار جميع الأنظمة',g:'9000'},
+  {c:'9014',n:'تسليم وتوثيق المشروع',g:'9000'},
+  {c:'9015',n:'ضمان وصيانة ما بعد التسليم',g:'9000',u:'سنة'},
+];
+
+const ACC={};
+ACCOUNTS.forEach(a=>ACC[a.c]=a.n);
+
+const GROUPS={
+  '100':'🗂 المصاريف الإدارية والعامة',
+  '200':'💰 الدفعات الواردة (الإيرادات)',
+  '1000':'🏗 المرحلة 1: الحفر والتمهيد',
+  '2000':'⚙ المرحلة 2: الهيكل الإنشائي',
+  '3000':'🧱 المرحلة 3: العازل والمباني',
+  '4000':'🔵 المرحلة 4: الصحي والكهرباء',
+  '5000':'🎨 المرحلة 5: التشطيب الداخلي',
+  '6000':'🌿 المرحلة 6: الأعمال الخارجية',
+  '7000':'🖌 المرحلة 7: الصباغة والدهان',
+  '8000':'❄ المرحلة 8: التكييف والمصاعد',
+  '9000':'🏁 المرحلة 9: التسليم والأجهزة',
+};
+
+const TYPE_B={
+  'فيلا':'bg','عمارة':'bb','تجاري':'bo','مسجد':'bg',
+  'تسليم مفتاح':'bg','هيكل أسود':'bb','تشطيب فقط':'bgr','صيانة':'br'
+};
+
+// ══════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════
+let projects=[],entries=[],contractors=[],workers=[],attendance=[],mukhalsahs=[],inkaz=[],vouchers=[],taswiyat=[],users=[],cars=[],carExpenses=[],vseq=3000;
+let currentUser=null,jFilter='all',accFilter='all',wFilter='all',scannedKnet=null;
+let pendingDelete=null;
+let companyInfo={ar:'شركة داركم للتجارة العامة والمقاولات',en:'Darcom For Trading and Contracting Co.',phone:'',addr:'الكويت'};
+let driveToken=null,driveFileId=null,tokenClient=null;
+const DRIVE_CLIENT_ID='256150541193-a1p6funt5t0opo8q0g51tqi8hoqqu2et.apps.googleusercontent.com';
+const DRIVE_SCOPES='https://www.googleapis.com/auth/drive.file';
+const DRIVE_FILE='darcom_pro_data.json';
+
+function load(){
+  projects    = JSON.parse(localStorage.getItem('dkf_proj')||'[]');
+  entries     = JSON.parse(localStorage.getItem('dkf_ent') ||'[]');
+  contractors = JSON.parse(localStorage.getItem('dkf_con') ||'[]');
+  workers     = JSON.parse(localStorage.getItem('dkf_wkr') ||'[]');
+  attendance  = JSON.parse(localStorage.getItem('dkf_att') ||'[]');
+  mukhalsahs  = JSON.parse(localStorage.getItem('dkf_muk') ||'[]');
+  inkaz       = JSON.parse(localStorage.getItem('dkf_ink') ||'[]');
+  vouchers    = JSON.parse(localStorage.getItem('dkf_vou') ||'[]');
+  taswiyat    = JSON.parse(localStorage.getItem('dkf_tas') ||'[]');
+  users       = JSON.parse(localStorage.getItem('dkf_usr') ||'[]');
+  cars        = JSON.parse(localStorage.getItem('dkf_cars')||'[]');
+  carExpenses = JSON.parse(localStorage.getItem('dkf_carx')||'[]');
+  vseq        = parseInt(localStorage.getItem('dkf_vseq') ||'3000');
+  companyInfo = JSON.parse(localStorage.getItem('dkf_co')  ||JSON.stringify(companyInfo));
+  if(!users.length){
+    users=[{id:'u1',name:'المدير',username:'admin',password:'darcom2024',role:'admin'}];
+    persist();
+  }
+}
+
+function persist(){
+  localStorage.setItem('dkf_proj', JSON.stringify(projects));
+  localStorage.setItem('dkf_ent',  JSON.stringify(entries));
+  localStorage.setItem('dkf_con',  JSON.stringify(contractors));
+  localStorage.setItem('dkf_wkr',  JSON.stringify(workers));
+  localStorage.setItem('dkf_att',  JSON.stringify(attendance));
+  localStorage.setItem('dkf_muk',  JSON.stringify(mukhalsahs));
+  localStorage.setItem('dkf_ink',  JSON.stringify(inkaz));
+  localStorage.setItem('dkf_vou',  JSON.stringify(vouchers));
+  localStorage.setItem('dkf_tas',  JSON.stringify(taswiyat));
+  localStorage.setItem('dkf_usr',  JSON.stringify(users));
+  localStorage.setItem('dkf_cars', JSON.stringify(cars));
+  localStorage.setItem('dkf_carx', JSON.stringify(carExpenses));
+  localStorage.setItem('dkf_vseq', vseq);
+  localStorage.setItem('dkf_co',   JSON.stringify(companyInfo));
+}
+
+// ══ HELPERS ══════════════════════════════════
+const today  = ()=>new Date().toISOString().split('T')[0];
+const fmt    = n=>parseFloat(n||0).toFixed(3);
+const fdate  = d=>{if(!d)return'—';const p=d.split('-');return`${p[2]}/${p[1]}/${p[0]}`;};
+const uid    = ()=>Date.now()+'_'+Math.random().toString(36).slice(2,6);
+const projOf = id=>projects.find(p=>p.id===id);
+const sumP   = id=>entries.filter(e=>e.proj===id&&e.etype!=='قبض'&&!ACCOUNTS.find(a=>a.c===e.cat&&a.income)).reduce((s,e)=>s+parseFloat(e.amount||0),0);
+const incomeP= id=>entries.filter(e=>e.proj===id&&(e.etype==='قبض'||ACCOUNTS.find(a=>a.c===e.cat&&a.income))).reduce((s,e)=>s+parseFloat(e.amount||0),0);
+const profitP= id=>incomeP(id)-sumP(id);
+const totalOut=()=>entries.filter(e=>e.etype!=='قبض'&&!ACCOUNTS.find(a=>a.c===e.cat&&a.income)).reduce((s,e)=>s+parseFloat(e.amount||0),0);
+const totalIn =()=>entries.filter(e=>e.etype==='قبض'||ACCOUNTS.find(a=>a.c===e.cat&&a.income)).reduce((s,e)=>s+parseFloat(e.amount||0),0);
+const officeTotal=()=>entries.filter(e=>e.etype==='مكتب').reduce((s,e)=>s+parseFloat(e.amount||0),0);
+const daysUntil=d=>{if(!d)return 999;return Math.ceil((new Date(d)-new Date())/(1000*60*60*24));};
+
+function toast(msg,type='ok'){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.className=`toast ${type} on`;
+  setTimeout(()=>el.classList.remove('on'),3200);
+}
+
+function tick(){
+  document.getElementById('topTime').textContent=new Date().toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('f-reg-date').textContent=new Date().toLocaleDateString('ar-KW');
+}
+
+// ══ LOGIN ══════════════════════════════════
+function doLogin(){
+  const u=document.getElementById('li-user').value.trim();
+  const p=document.getElementById('li-pass').value;
+  const found=users.find(x=>x.username===u&&x.password===p);
+  if(!found){document.getElementById('li-err').textContent='اسم المستخدم أو كلمة المرور غير صحيحة';return;}
+  currentUser=found;
+  document.getElementById('loginWrap').style.display='none';
+  document.getElementById('mainApp').style.display='flex';
+  document.getElementById('topUser').textContent=found.name+' ↩';
+  populateSelects();renderDash();
+  checkAlerts();
+}
+function logout(){
+  if(!confirm('تسجيل الخروج؟'))return;
+  currentUser=null;
+  document.getElementById('loginWrap').style.display='flex';
+  document.getElementById('mainApp').style.display='none';
+  document.getElementById('li-pass').value='';
+  document.getElementById('li-err').textContent='';
+}
+
+// ══ NAV ═══════════════════════════════════
+function go(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.getElementById('p-'+id).classList.add('on');
+  const order=['dash','projects','add','scan','journal','inkaz','vouchers','mukhalsah','contractors','workers','cars','accounts','reports','settings'];
+  const idx=order.indexOf(id);
+  if(idx>=0)document.querySelectorAll('.tab')[idx]?.classList.add('on');
+  document.querySelector('.scroll').scrollTop=0;
+  if(id==='dash')        renderDash();
+  if(id==='projects')    renderProjects();
+  if(id==='journal')     renderJournal();
+  if(id==='inkaz')       renderInkaz();
+  if(id==='contractors') renderCons();
+  if(id==='workers')     renderWorkers();
+  if(id==='cars')        renderCars();
+  if(id==='accounts')    renderAccounts();
+  if(id==='reports')     renderReports();
+  if(id==='mukhalsah')   renderMukhalsah();
+  if(id==='vouchers')    renderVouchers();
+  if(id==='settings')    renderSettings();
+  if(['add','scan','mukhalsah','vouchers'].includes(id)) populateSelects();
+}
+
+// ══ SELECTS ═══════════════════════════════
+function populateSelects(){
+  ['f-proj','k-proj','a-proj','att-proj','ik-proj','m-proj','v-proj','t-proj','r-proj-filter'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    const isOpt=['v-proj','m-proj','r-proj-filter'].includes(id);
+    el.innerHTML=isOpt?'<option value="">-- الكل / بدون --</option>':'<option value="">-- اختر المشروع --</option>';
+    projects.forEach(p=>el.innerHTML+=`<option value="${p.id}">${p.code} – ${p.name}</option>`);
+  });
+  buildCatSelect('f-cat');
+  buildCatSelect('k-cat');
+  buildCatSelect('a-cat');
+  buildCatSelect('c-cat');
+  buildCatSelect('ik-cat');
+  buildCatSelect('ci-cat');
+
+  const aw=document.getElementById('att-worker');
+  if(aw){aw.innerHTML='<option value="">-- اختر العامل --</option>';workers.forEach(w=>aw.innerHTML+=`<option value="${w.id}">${w.name} – ${w.spec||''}</option>`);}
+  const tc=document.getElementById('t-con');
+  if(tc){tc.innerHTML='<option value="">-- اختر --</option>';contractors.forEach(c=>tc.innerHTML+=`<option value="${c.id}">${c.name}</option>`);}
+  const cs=document.getElementById('car-sel');
+  if(cs){cs.innerHTML='<option value="">-- اختر السيارة --</option>';cars.forEach(c=>cs.innerHTML+=`<option value="${c.id}">${c.name} — ${c.plate}</option>`);}
+}
+
+function buildCatSelect(id,filter){
+  const el=document.getElementById(id);if(!el)return;
+  el.innerHTML='<option value="">-- اختر البند --</option>';
+  let lg='';
+  ACCOUNTS.filter(a=>!a.main).forEach(a=>{
+    if(a.g!==lg){
+      const mn=ACCOUNTS.find(x=>x.c===a.g&&x.main);
+      el.innerHTML+=`<optgroup label="── ${mn?mn.n:'مجموعة '+a.g}">`;
+      lg=a.g;
+    }
+    el.innerHTML+=`<option value="${a.c}">${a.c} – ${a.n}</option>`;
+  });
+}
+
+function filterCatSearch(val,targetId){
+  const el=document.getElementById(targetId);if(!el)return;
+  el.innerHTML='<option value="">-- اختر البند --</option>';
+  if(!val){buildCatSelect(targetId);return;}
+  const v=val.toLowerCase();
+  ACCOUNTS.filter(a=>!a.main&&(a.n.includes(val)||a.c.includes(val))).forEach(a=>{
+    el.innerHTML+=`<option value="${a.c}">${a.c} – ${a.n}</option>`;
+  });
+}
+
+function onEtypeChange(){
+  const t=document.getElementById('f-etype').value;
+  document.getElementById('f-proj-wrap').style.display=t==='مكتب'?'none':'flex';
+  document.getElementById('f-outside-wrap').style.display=t==='صرف'?'flex':'none';
+  // Auto-filter cat based on type
+  const catSearch=document.getElementById('f-cat-search');
+  if(catSearch){catSearch.value='';buildCatSelect('f-cat');}
+  if(t==='قبض'){
+    // Show income accounts
+    const el=document.getElementById('f-cat');
+    el.innerHTML='<option value="">-- اختر البند --</option>';
+    ACCOUNTS.filter(a=>a.g==='200'&&!a.main).forEach(a=>el.innerHTML+=`<option value="${a.c}">${a.c} – ${a.n}</option>`);
+  }
+}
+
+// ══ ALERTS ════════════════════════════════
+function checkAlerts(){
+  const alerts=[];
+  const WARN_DAYS=30;
+  // Workers
+  workers.forEach(w=>{
+    if(w.iqama){const d=daysUntil(w.iqama);if(d<=60)alerts.push({type:'iqama',msg:`إقامة العامل ${w.name} تنتهي خلال ${d} يوم`,days:d});}
+    if(w.passport){const d=daysUntil(w.passport);if(d<=60)alerts.push({type:'passport',msg:`جواز العامل ${w.name} ينتهي خلال ${d} يوم`,days:d});}
+  });
+  // Cars
+  cars.forEach(c=>{
+    if(c.insExp){const d=daysUntil(c.insExp);if(d<=WARN_DAYS)alerts.push({type:'car',msg:`تأمين سيارة ${c.name} ينتهي خلال ${d} يوم`,days:d});}
+    if(c.licExp){const d=daysUntil(c.licExp);if(d<=WARN_DAYS)alerts.push({type:'car',msg:`ترخيص سيارة ${c.name} ينتهي خلال ${d} يوم`,days:d});}
+  });
+  // Budget warnings
+  projects.forEach(p=>{
+    if(p.budget){
+      const sp=sumP(p.id);const bg=parseFloat(p.budget);
+      const pct=sp/bg*100;
+      if(pct>=90)alerts.push({type:'budget',msg:`مشروع ${p.name}: وصل ${pct.toFixed(0)}% من الميزانية`,days:0});
+    }
+  });
+  const box=document.getElementById('alertsBox');
+  if(!alerts.length){box.innerHTML='';return;}
+  box.innerHTML=`<div class="alert-box"><div style="font-weight:800;color:var(--red2);margin-bottom:8px;font-size:12px;">⚠️ تنبيهات مهمة (${alerts.length})</div>${alerts.map(a=>`<div class="alert-item"><span>🔴</span><span>${a.msg}</span></div>`).join('')}</div>`;
+}
+
+// ══ DASHBOARD ═════════════════════════════
+function renderDash(){
+  checkAlerts();
+  document.getElementById('d-total').textContent=fmt(totalOut());
+  document.getElementById('d-income').textContent=fmt(totalIn());
+  document.getElementById('d-profit').textContent=fmt(totalIn()-totalOut());
+  document.getElementById('d-office').textContent=fmt(officeTotal());
+
+  const dp=document.getElementById('d-projs');
+  if(!projects.length){dp.innerHTML='<div class="empty">لا توجد مشاريع — أضف مشروعاً جديداً</div>';return;}
+  dp.innerHTML=projects.map(p=>{
+    const sp=sumP(p.id);const inc=incomeP(p.id);const bg=parseFloat(p.budget||0);
+    let bar='';
+    if(bg>0){const pct=Math.min(sp/bg*100,100);const cls=pct<70?'p-ok':pct<90?'p-warn':'p-over';bar=`<div class="prog"><div class="prog-bg"><div class="prog-fill ${cls}" style="width:${pct}%"></div></div><div class="prog-row"><span>مصروف: ${fmt(sp)} KD</span><span>${pct.toFixed(0)}%</span></div></div>`;}
+    return`<div class="lrow" style="flex-direction:column;align-items:stretch;gap:5px;cursor:pointer;" onclick="openDetail('${p.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div><span style="font-family:var(--mono);font-size:9px;color:var(--text3)">${p.code}</span> <strong style="font-size:13px;margin-right:6px;">${p.name}</strong><span class="badge ${TYPE_B[p.type]||'bb'}">${p.type}</span></div>
+        <div style="text-align:left;"><div class="mono tg" style="font-size:12px;">${fmt(sp)} KD</div><div style="font-size:9px;color:var(--text3)">وارد: ${fmt(inc)}</div></div>
+      </div>${bar}
+    </div>`;
+  }).join('');
+
+  const rec=[...entries].reverse().slice(0,6);
+  document.getElementById('d-recent').innerHTML=rec.length?rec.map(e=>{
+    const p=projOf(e.proj);
+    const isOut=e.etype==='صرف'||e.etype==='مكتب'||e.etype==='عهدة'||e.etype==='استلام';
+    const isIn=e.etype==='قبض';
+    return`<div class="lrow"><span class="lcode">${e.cat}</span><div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.vendor||e.desc||'—'}</div><div style="font-size:10px;color:var(--text3)">${fdate(e.date)} · ${e.etype==='مكتب'?'🏢 مكتب':p?p.name:'—'} · <span class="badge ${isIn?'bgr':isOut?'br':'bo'}">${e.etype}</span></div></div><span class="mono ${isIn?'tg':isOut?'tr':'tgo'}">${isOut?'-':'+'} ${fmt(e.amount)}</span></div>`;
+  }).join(''):'<div class="empty">لا توجد قيود بعد</div>';
+}
+
+// ══ PROJECTS ══════════════════════════════
+function renderProjects(){
+  const el=document.getElementById('proj-list');
+  if(!projects.length){el.innerHTML='<div class="empty">لا توجد مشاريع</div>';return;}
+  el.innerHTML=projects.map(p=>{
+    const sp=sumP(p.id);const inc=incomeP(p.id);const bg=parseFloat(p.budget||0);
+    let prog='';
+    if(bg>0){const pct=Math.min(sp/bg*100,100);const cls=pct<70?'p-ok':pct<90?'p-warn':'p-over';prog=`<div class="prog" style="margin-top:8px;"><div class="prog-bg"><div class="prog-fill ${cls}" style="width:${pct}%"></div></div><div class="prog-row"><span>مصروف: ${fmt(sp)} KD</span><span>متبقي: ${fmt(bg-sp)} KD</span></div></div>`;}
+    return`<div class="pcard" onclick="openDetail('${p.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+        <div><div style="font-family:var(--mono);font-size:9px;color:var(--text3)">${p.code} · ${p.contract}</div><div style="font-weight:900;font-size:14px;margin-top:2px;">${p.name}</div>${p.client?`<div style="font-size:11px;color:var(--text3);margin-top:2px;">👤 ${p.client}</div>`:''}</div>
+        <div style="text-align:left;"><span class="badge ${TYPE_B[p.type]||'bb'}">${p.type}</span><div class="mono tg" style="font-size:15px;margin-top:5px;">${fmt(sp)} KD</div><div style="font-size:9px;color:var(--text3)">وارد: ${fmt(inc)} | ربح: <span style="color:${profitP(p.id)>=0?'var(--green2)':'var(--red2)'}">${fmt(profitP(p.id))}</span></div></div>
+      </div>
+      ${p.loc?`<div style="font-size:11px;color:var(--text3);margin-bottom:5px;">📍 ${p.loc}</div>`:''}
+      ${prog}
+      <div style="display:flex;gap:10px;font-size:10px;color:var(--text3);margin-top:7px;flex-wrap:wrap;">
+        ${p.start?`<span>📅 ${fdate(p.start)}</span>`:''}${p.end?`<span>🏁 ${fdate(p.end)}</span>`:''}${p.value?`<span>💰 ${fmt(p.value)} KD</span>`:''}
+        <span style="margin-right:auto;"><button class="btn btn-red btn-sm" onclick="event.stopPropagation();requestDelete('project','${p.id}')">حذف</button></span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openDetail(id){
+  const p=projOf(id);if(!p)return;
+  const sp=sumP(id);const inc=incomeP(id);const bg=parseFloat(p.budget||0);
+  let bsec='';
+  if(bg>0){const pct=Math.min(sp/bg*100,100);const cls=pct<70?'p-ok':pct<90?'p-warn':'p-over';bsec=`<div style="margin:11px 0;"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;"><span>الميزانية: <strong>${fmt(bg)} KD</strong></span><span style="color:var(--orange2);font-weight:800;">${pct.toFixed(1)}%</span></div><div class="prog-bg"><div class="prog-fill ${cls}" style="width:${pct}%"></div></div><div class="prog-row"><span style="color:var(--green2)">مصروف: ${fmt(sp)}</span><span style="color:var(--red2)">متبقي: ${fmt(bg-sp)}</span></div></div>`;}
+  
+  // Group entries by account
+  const catMap={};
+  entries.filter(e=>e.proj===id).forEach(e=>{
+    if(!catMap[e.cat])catMap[e.cat]=0;
+    catMap[e.cat]+=parseFloat(e.amount||0);
+  });
+  const cats=Object.entries(catMap).map(([cat,amt])=>`<div class="lrow"><span class="lcode">${cat}</span><span class="lname">${ACC[cat]||cat}</span><span class="lamt">${fmt(amt)} KD</span></div>`).join('');
+
+  document.getElementById('detailContent').innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:15px;">
+      <div><div style="font-family:var(--mono);font-size:9px;color:var(--text3)">${p.code}</div><div style="font-size:17px;font-weight:900;margin:3px 0">${p.name}</div><span class="badge ${TYPE_B[p.type]||'bb'}">${p.type}</span></div>
+      <div style="text-align:left;"><div class="mono tg" style="font-size:16px;">${fmt(sp)} KD</div><div style="font-size:10px;color:var(--text3)">وارد: ${fmt(inc)}</div><div style="font-size:10px;font-weight:700;color:${profitP(id)>=0?'var(--green2)':'var(--red2)'}">ربح: ${fmt(profitP(id))} KD</div></div>
+    </div>
+    ${p.client?`<div style="font-size:12px;color:var(--text3);margin-bottom:5px;">👤 ${p.client}</div>`:''}
+    ${p.loc?`<div style="font-size:12px;color:var(--text3);margin-bottom:5px;">📍 ${p.loc}</div>`:''}
+    ${bsec}
+    <div class="stitle">تفصيل البنود</div>
+    ${cats||'<div style="font-size:12px;color:var(--text3);text-align:center;padding:10px;">لا توجد مصروفات بعد</div>'}
+    <div class="btn-row" style="margin-top:14px;">
+      <button class="btn btn-gold btn-sm" onclick="closeM('detailModal');go('add');setTimeout(()=>{document.getElementById('f-proj').value='${id}'},150)">+ قيد جديد</button>
+      <button class="btn btn-blue btn-sm" onclick="closeM('detailModal');go('vouchers');setTimeout(()=>{document.getElementById('v-proj').value='${id}'},150)">سند صرف</button>
+      <button class="btn btn-ghost btn-sm" onclick="closeM('detailModal')">إغلاق</button>
+    </div>`;
+  document.getElementById('detailModal').classList.add('on');
+}
+
+function openProjModal(){
+  const n=projects.length+1;
+  document.getElementById('pm-code').value=`P${String(n).padStart(3,'0')}`;
+  document.getElementById('pm-start').value=today();
+  document.getElementById('projModal').classList.add('on');
+}
+function saveProject(){
+  const name=document.getElementById('pm-name').value.trim();
+  if(!name){toast('أدخل اسم المشروع','err');return;}
+  projects.push({id:uid(),name,code:document.getElementById('pm-code').value||`P${projects.length+1}`,type:document.getElementById('pm-type').value,contract:document.getElementById('pm-contract').value,loc:document.getElementById('pm-loc').value,client:document.getElementById('pm-client').value,start:document.getElementById('pm-start').value,end:document.getElementById('pm-end').value,value:document.getElementById('pm-value').value,budget:document.getElementById('pm-budget').value,notes:document.getElementById('pm-notes').value,status:'نشط',created:today()});
+  persist();closeM('projModal');toast(`✅ تم إضافة: ${name}`);renderDash();populateSelects();
+  ['pm-name','pm-code','pm-loc','pm-client','pm-start','pm-end','pm-value','pm-budget','pm-notes'].forEach(id=>document.getElementById(id).value='');
+}
+
+// ══ DELETE WITH PASSWORD ══════════════════
+function requestDelete(type,id){
+  pendingDelete={type,id};
+  document.getElementById('del-pass').value='';
+  document.getElementById('del-err').textContent='';
+  document.getElementById('deleteModal').classList.add('on');
+}
+function confirmDelete(){
+  const pass=document.getElementById('del-pass').value;
+  if(!currentUser||pass!==currentUser.password){document.getElementById('del-err').textContent='كلمة المرور غير صحيحة';return;}
+  if(!pendingDelete)return;
+  const {type,id}=pendingDelete;
+  if(type==='project'){projects=projects.filter(p=>p.id!==id);entries=entries.filter(e=>e.proj!==id);inkaz=inkaz.filter(i=>i.proj!==id);persist();renderProjects();renderDash();populateSelects();toast('تم حذف المشروع','err');}
+  if(type==='entry'){entries=entries.filter(e=>e.id!==id);persist();renderJournal();toast('تم حذف القيد','err');}
+  pendingDelete=null;closeM('deleteModal');
+}
+
+// ══ VENDOR AUTOCOMPLETE ═══════════════════
+function filterVendors(val){
+  const dd=document.getElementById('vdrop');
+  if(!val||val.length<1){dd.style.display='none';return;}
+  const m=[...contractors,...workers].filter(c=>(c.name||'').includes(val)||(c.spec||'').includes(val));
+  if(!m.length){dd.style.display='none';return;}
+  dd.innerHTML=m.slice(0,8).map(c=>`<div class="vitem" onclick="pickV('${c.name}','${c.cat||''}')"><span><strong>${c.name}</strong> <span style="font-size:10px;color:var(--text3)">${c.spec||c.type||''}</span></span><span class="badge bb">${c.code||''}</span></div>`).join('');
+  dd.style.display='block';
+}
+function pickV(name,cat){
+  document.getElementById('f-vendor').value=name;
+  if(cat)document.getElementById('f-cat').value=cat;
+  document.getElementById('vdrop').style.display='none';
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#f-vendor')&&!e.target.closest('#vdrop'))
+    document.getElementById('vdrop').style.display='none';
+});
+
+// ══ SAVE ENTRY ════════════════════════════
+function saveEntry(){
+  const etype=document.getElementById('f-etype').value;
+  const proj=etype==='مكتب'?'':document.getElementById('f-proj').value;
+  const cat=document.getElementById('f-cat').value;
+  const amt=document.getElementById('f-amount').value;
+  if(etype!=='مكتب'&&!proj){toast('اختر المشروع','err');return;}
+  if(!cat){toast('اختر البند المحاسبي','err');return;}
+  if(!amt||parseFloat(amt)<=0){toast('أدخل مبلغاً صحيحاً','err');return;}
+  const outside=document.getElementById('f-outside')?.checked||false;
+  const e={
+    id:uid(),
+    date:document.getElementById('f-date').value||today(),
+    regDate:today(),
+    voucher:document.getElementById('f-voucher').value||(++vseq)+'',
+    etype,proj,cat,
+    vendor:document.getElementById('f-vendor').value,
+    desc:document.getElementById('f-desc').value,
+    amount:amt,
+    pay:document.getElementById('f-pay').value,
+    notes:document.getElementById('f-notes').value,
+    outside,
+  };
+  entries.push(e);persist();
+  toast(`✅ تم حفظ القيد – ${etype==='قبض'?'+':'-'} ${fmt(amt)} KD`);
+  clearForm();renderDash();
+  // Auto cloud save
+  if(driveToken)driveDoSave();
+}
+
+function clearForm(){
+  ['f-proj','f-cat','f-cat-search','f-vendor','f-desc','f-amount','f-notes','f-voucher'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('f-date').value=today();
+  document.getElementById('f-pay').value='نقد';
+  document.getElementById('f-etype').value='صرف';
+  if(document.getElementById('f-outside'))document.getElementById('f-outside').checked=false;
+  onEtypeChange();
+  buildCatSelect('f-cat');
+}
+
+// ══ SCAN ══════════════════════════════════
+const sz=document.getElementById('scanZone');
+sz.addEventListener('dragover',e=>{e.preventDefault();sz.classList.add('drag');});
+sz.addEventListener('dragleave',()=>sz.classList.remove('drag'));
+sz.addEventListener('drop',e=>{e.preventDefault();sz.classList.remove('drag');if(e.dataTransfer.files[0]){document.getElementById('fileIn').files=e.dataTransfer.files;handleScan(document.getElementById('fileIn'));}});
+
+async function callAI(b64,mime,systemPrompt){
+  const resp=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',
+      max_tokens:1000,
+      system:systemPrompt,
+      messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:mime,data:b64}},{type:'text',text:'حلل هذه الصورة.'}]}]
+    })
+  });
+  const data=await resp.json();
+  return data.content.map(c=>c.text||'').join('');
+}
+
+function handleScan(input){
+  if(!input.files[0])return;
+  const file=input.files[0];
+  show('aiProc');hide('knetBox');hide('aiBox');populateSelects();
+  const reader=new FileReader();
+  reader.onload=async ev=>{
+    const b64=ev.target.result.split(',')[1];
+    const mime=file.type||'image/jpeg';
+    try{
+      const txt=await callAI(b64,mime,`أنت نظام تحليل فواتير لشركة داركم للمقاولات في الكويت.
+إذا كانت الصورة إيصال KNET (Payment Successful): أجب بـ JSON فقط: {"type":"knet","date":"YYYY-MM-DD","auth_id":"","amount":0.000}
+إذا كانت فاتورة عادية: أجب بـ JSON فقط: {"type":"invoice","date":"YYYY-MM-DD","voucher":"","vendor":"","desc":"","amount":0.000,"pay":"نقد","cat":""}
+أكواد البنود الشائعة: 2001=خرسانة 2003=حديد 2011=نجارة هيكل 3011=مباني 3013=طابوق 4001=صحي 4011=كهرباء 5001=مساح داخلي 5021=سيراميك 5043=رخام 5071=ديكور 6021=ألمنيوم نوافذ 7001=صباغة 8001=تكييف 1001=حفر 122=طعام عمال 123=مواصلات 128=يوميات
+JSON فقط بدون أي نص آخر.`);
+      const parsed=JSON.parse(txt.replace(/```json|```/g,'').trim());
+      hide('aiProc');
+      if(parsed.type==='knet'){
+        scannedKnet=parsed;
+        document.getElementById('knetData').innerHTML=`<div class="krow"><span class="klbl">التاريخ</span><span class="kval">${fdate(parsed.date)||'—'}</span></div><div class="krow"><span class="klbl">Auth ID</span><span class="kval">${parsed.auth_id||'—'}</span></div>${parsed.amount?`<div class="krow"><span class="klbl">المبلغ</span><span class="kval">${fmt(parsed.amount)} KD</span></div>`:''}`;
+        document.getElementById('k-amount').value=parsed.amount||'';
+        show('knetBox');
+      }else{
+        document.getElementById('a-date').value=parsed.date||today();
+        document.getElementById('a-voucher').value=parsed.voucher||(++vseq)+'';
+        document.getElementById('a-vendor').value=parsed.vendor||'';
+        document.getElementById('a-desc').value=parsed.desc||'';
+        document.getElementById('a-amount').value=parsed.amount||'';
+        document.getElementById('a-pay').value=parsed.pay||'نقد';
+        if(parsed.cat)document.getElementById('a-cat').value=parsed.cat;
+        show('aiBox');
+      }
+    }catch(err){hide('aiProc');toast('خطأ في التحليل — تأكد من الاتصال بالإنترنت وحاول مرة أخرى','err');}
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveKnet(){
+  const proj=document.getElementById('k-proj').value;const cat=document.getElementById('k-cat').value;
+  if(!proj){toast('اختر المشروع','err');return;}if(!cat){toast('اختر البند','err');return;}
+  const amt=document.getElementById('k-amount').value;if(!amt){toast('أدخل المبلغ','err');return;}
+  entries.push({id:uid(),date:scannedKnet?.date||today(),regDate:today(),voucher:scannedKnet?.auth_id||(++vseq)+'',etype:'صرف',proj,cat,vendor:document.getElementById('k-vendor').value,desc:document.getElementById('k-desc').value,amount:amt,pay:'KNET',notes:document.getElementById('k-notes').value,outside:false});
+  persist();toast(`✅ KNET – ${fmt(amt)} KD`);cancelScan();go('dash');
+}
+function saveAi(){
+  const proj=document.getElementById('a-proj').value;const cat=document.getElementById('a-cat').value;const amt=document.getElementById('a-amount').value;
+  if(!proj||!cat||!amt){toast('البيانات ناقصة','err');return;}
+  entries.push({id:uid(),date:document.getElementById('a-date').value,regDate:today(),voucher:document.getElementById('a-voucher').value,etype:'صرف',proj,cat,vendor:document.getElementById('a-vendor').value,desc:document.getElementById('a-desc').value,amount:amt,pay:document.getElementById('a-pay').value,notes:'',outside:false});
+  persist();toast(`✅ تم – ${fmt(amt)} KD`);cancelScan();go('dash');
+}
+function cancelScan(){['aiProc','knetBox','aiBox'].forEach(hide);document.getElementById('fileIn').value='';scannedKnet=null;}
+
+// ══ SCAN ID ═══════════════════════════════
+function openScanCon(){document.getElementById('conIdResult').style.display='none';hide('conIdProc');document.getElementById('scanConModal').classList.add('on');}
+function openScanWorker(){document.getElementById('workerIdResult').style.display='none';hide('workerIdProc');document.getElementById('scanWorkerModal').classList.add('on');}
+
+async function scanConId(input){
+  if(!input.files[0])return;
+  const file=input.files[0];
+  show('conIdProc');
+  const reader=new FileReader();
+  reader.onload=async ev=>{
+    const b64=ev.target.result.split(',')[1];const mime=file.type||'image/jpeg';
+    try{
+      const txt=await callAI(b64,mime,`استخرج بيانات من بطاقة الهوية الكويتية أو الإقامة. أجب بـ JSON فقط: {"name":"الاسم الكامل","civil":"رقم البطاقة المدنية","nationality":"الجنسية","dob":"تاريخ الميلاد YYYY-MM-DD أو فارغ"}. JSON فقط.`);
+      const parsed=JSON.parse(txt.replace(/```json|```/g,'').trim());
+      hide('conIdProc');
+      document.getElementById('ci-name').value=parsed.name||'';
+      document.getElementById('ci-civil').value=parsed.civil||'';
+      document.getElementById('ci-nat').value=parsed.nationality||'';
+      document.getElementById('ci-code').value=`CON-${String(contractors.length+1).padStart(3,'0')}`;
+      populateSelects();
+      document.getElementById('conIdResult').style.display='block';
+    }catch(e){hide('conIdProc');toast('تعذر استخراج البيانات — أدخل يدوياً','err');}
+  };
+  reader.readAsDataURL(file);
+}
+
+async function scanWorkerId(input){
+  if(!input.files[0])return;
+  const file=input.files[0];
+  show('workerIdProc');
+  const reader=new FileReader();
+  reader.onload=async ev=>{
+    const b64=ev.target.result.split(',')[1];const mime=file.type||'image/jpeg';
+    try{
+      const txt=await callAI(b64,mime,`استخرج بيانات من بطاقة الهوية الكويتية أو الإقامة أو الجواز. أجب بـ JSON فقط: {"name":"الاسم الكامل","civil":"رقم البطاقة المدنية","nationality":"الجنسية","dob":"تاريخ الميلاد YYYY-MM-DD أو فارغ"}. JSON فقط.`);
+      const parsed=JSON.parse(txt.replace(/```json|```/g,'').trim());
+      hide('workerIdProc');
+      document.getElementById('wi-name').value=parsed.name||'';
+      document.getElementById('wi-civil').value=parsed.civil||'';
+      document.getElementById('wi-nat').value=parsed.nationality||'';
+      document.getElementById('wi-code').value=`WRK-${String(workers.length+1).padStart(3,'0')}`;
+      document.getElementById('workerIdResult').style.display='block';
+    }catch(e){hide('workerIdProc');toast('تعذر استخراج البيانات — أدخل يدوياً','err');}
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveScannedCon(){
+  const name=document.getElementById('ci-name').value.trim();if(!name){toast('أدخل الاسم','err');return;}
+  contractors.push({id:uid(),name,civil:document.getElementById('ci-civil').value,nat:document.getElementById('ci-nat').value,code:document.getElementById('ci-code').value,type:document.getElementById('ci-type').value,spec:document.getElementById('ci-spec').value,phone:document.getElementById('ci-phone').value,cat:document.getElementById('ci-cat').value});
+  persist();closeM('scanConModal');renderCons();toast(`✅ تم إضافة ${name}`);
+}
+function saveScannedWorker(){
+  const name=document.getElementById('wi-name').value.trim();if(!name){toast('أدخل الاسم','err');return;}
+  workers.push({id:uid(),name,civil:document.getElementById('wi-civil').value,nat:document.getElementById('wi-nat').value,code:document.getElementById('wi-code').value,wtype:document.getElementById('wi-wtype').value,spec:document.getElementById('wi-spec').value,wage:document.getElementById('wi-wage').value,phone:document.getElementById('wi-phone').value,iqama:document.getElementById('wi-iqama').value,passport:document.getElementById('wi-passport').value});
+  persist();closeM('scanWorkerModal');renderWorkers();toast(`✅ تم إضافة ${name}`);populateSelects();checkAlerts();
+}
+
+// ══ JOURNAL ═══════════════════════════════
+function renderJournal(){
+  const pp=document.getElementById('jPills');
+  pp.innerHTML=`<div class="pill on" onclick="setJF('all',this)">الكل</div><div class="pill" onclick="setJF('out',this)">💸 صادر</div><div class="pill" onclick="setJF('in',this)">💰 وارد</div><div class="pill" onclick="setJF('مكتب',this)">🏢 مكتب</div>`;
+  projects.forEach(p=>pp.innerHTML+=`<div class="pill" onclick="setJF('${p.id}',this)">${p.code}</div>`);
+  const search=(document.getElementById('j-search')||{}).value||'';
+  let filtered=entries;
+  if(jFilter==='all')filtered=entries;
+  else if(jFilter==='out')filtered=entries.filter(e=>e.etype!=='قبض'&&!ACCOUNTS.find(a=>a.c===e.cat&&a.income));
+  else if(jFilter==='in')filtered=entries.filter(e=>e.etype==='قبض'||ACCOUNTS.find(a=>a.c===e.cat&&a.income));
+  else if(jFilter==='مكتب')filtered=entries.filter(e=>e.etype==='مكتب');
+  else filtered=entries.filter(e=>e.proj===jFilter);
+  if(search)filtered=filtered.filter(e=>(e.vendor||'').includes(search)||(e.desc||'').includes(search)||(e.cat||'').includes(search)||(e.voucher||'').includes(search));
+  const out=filtered.filter(e=>e.etype!=='قبض'&&!ACCOUNTS.find(a=>a.c===e.cat&&a.income)).reduce((s,e)=>s+parseFloat(e.amount||0),0);
+  const inp=filtered.filter(e=>e.etype==='قبض'||ACCOUNTS.find(a=>a.c===e.cat&&a.income)).reduce((s,e)=>s+parseFloat(e.amount||0),0);
+  document.getElementById('j-out').textContent=fmt(out);
+  document.getElementById('j-in').textContent=fmt(inp);
+  document.getElementById('j-net').textContent=fmt(inp-out);
+  document.getElementById('j-cnt').textContent=filtered.length;
+  const tb=document.getElementById('jBody');
+  if(!filtered.length){tb.innerHTML=`<tr><td colspan="9"><div class="empty">لا توجد قيود</div></td></tr>`;return;}
+  tb.innerHTML=[...filtered].reverse().map((e,i)=>{
+    const p=projOf(e.proj);
+    const isIn=e.etype==='قبض'||ACCOUNTS.find(a=>a.c===e.cat&&a.income);
+    const isOut=!isIn;
+    const typeLabel=e.etype==='مكتب'?'<span class="badge bo">مكتب</span>':e.etype==='قبض'?'<span class="badge bgr">قبض</span>':e.etype==='عهدة'?'<span class="badge bg">عهدة</span>':e.etype==='استلام'?'<span class="badge bb">استلام</span>':'<span class="badge br">صرف</span>';
+    return`<tr>
+      <td style="color:var(--text3);font-size:10px;">${filtered.length-i}</td>
+      <td style="font-size:10px;white-space:nowrap;">${fdate(e.date)}</td>
+      <td>${typeLabel}</td>
+      <td style="font-size:10px;"><span class="badge bb">${p?p.code:e.etype==='مكتب'?'مكتب':'—'}</span></td>
+      <td style="max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;">${e.vendor||'—'}</td>
+      <td style="font-size:10px;color:var(--text3);">${e.cat} ${e.outside?'<span class="badge bo">خارج</span>':''}</td>
+      <td class="mono ${isIn?'tg':'tr'}">${isOut?'-':'+'} ${fmt(e.amount)}</td>
+      <td><span class="badge ${e.pay&&e.pay.includes('KNET')?'bp':'bg'}">${(e.pay||'').split(' ')[0]}</span></td>
+      <td><button class="btn btn-red btn-sm" onclick="requestDelete('entry','${e.id}')" style="padding:3px 7px;">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+function setJF(f,el){jFilter=f;document.querySelectorAll('#jPills .pill').forEach(p=>p.classList.remove('on'));el.classList.add('on');renderJournal();}
+function clearAllEntries(){if(!confirm('حذف جميع القيود؟'))return;entries=[];persist();renderJournal();toast('تم الحذف','err');}
+
+function printJournal(){
+  const html=`<div style="padding:20px;direction:rtl;font-family:Cairo,sans-serif;">
+    <h2 style="color:#1a3354;margin-bottom:10px;">اليومية المركزية — ${companyInfo.ar}</h2>
+    <table style="width:100%;border-collapse:collapse;font-size:12px;">
+      <thead><tr style="background:#1a3354;color:white;">${['#','التاريخ','النوع','المشروع','المورد','البند','المبلغ KD','الدفع'].map(h=>`<th style="padding:8px;text-align:right;">${h}</th>`).join('')}</tr></thead>
+      <tbody>${[...entries].reverse().map((e,i)=>{const p=projOf(e.proj);const isIn=e.etype==='قبض';return`<tr style="border-bottom:1px solid #eee;"><td style="padding:6px;">${i+1}</td><td>${fdate(e.date)}</td><td>${e.etype}</td><td>${p?p.code:e.etype==='مكتب'?'مكتب':'—'}</td><td>${e.vendor||'—'}</td><td>${e.cat}</td><td style="color:${isIn?'green':'red'};font-weight:700;">${isIn?'+':'-'}${fmt(e.amount)}</td><td>${e.pay||''}</td></tr>`;}).join('')}</tbody>
+    </table>
+  </div>`;
+  document.getElementById('printArea').innerHTML=html;
+  document.getElementById('printArea').style.display='block';
+  window.print();
+  setTimeout(()=>document.getElementById('printArea').style.display='none',1000);
+}
+
+// ══ INKAZ ═════════════════════════════════
+function renderInkaz(){
+  const el=document.getElementById('inkaz-list');
+  if(!projects.length){el.innerHTML='<div class="empty">أضف مشروعاً أولاً</div>';return;}
+  let html='';
+  projects.forEach(p=>{const pi=inkaz.filter(i=>i.proj===p.id);if(!pi.length)return;html+=`<div style="margin-bottom:14px;"><div class="stitle">${p.code} – ${p.name}</div>${pi.map(i=>{const pct=parseFloat(i.pct||0);return`<div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><span style="font-weight:800;font-size:13px;">${ACC[i.cat]||i.cat}</span><span style="font-family:var(--mono);font-size:16px;font-weight:900;color:var(--gold)">${pct}%</span></div><div class="prog-bg"><div class="prog-fill p-ok" style="width:${pct}%"></div></div>${i.notes?`<div style="font-size:10px;color:var(--text3);margin-top:4px;">💬 ${i.notes}</div>`:''}</div>`;}).join('')}</div>`;});
+  el.innerHTML=html||'<div class="empty">لا توجد بيانات إنجاز</div>';
+}
+function openInkazModal(){populateSelects();document.getElementById('inkazModal').classList.add('on');}
+function saveInkaz(){
+  const proj=document.getElementById('ik-proj').value;const cat=document.getElementById('ik-cat').value;const pct=document.getElementById('ik-pct').value;
+  if(!proj||!cat){toast('اختر المشروع والبند','err');return;}
+  const existing=inkaz.findIndex(i=>i.proj===proj&&i.cat===cat);
+  const rec={proj,cat,pct:parseFloat(pct||0),notes:document.getElementById('ik-notes').value,date:today()};
+  if(existing>=0)inkaz[existing]=rec;else inkaz.push(rec);
+  persist();closeM('inkazModal');renderInkaz();toast('✅ تم تحديث الإنجاز');
+}
+
+// ══ SIGNATURE PADS ════════════════════════
+function initSig(id){
+  const canvas=document.getElementById(id);if(!canvas)return;
+  const ctx=canvas.getContext('2d');let drawing=false;
+  const pos=(e)=>{const r=canvas.getBoundingClientRect();const c=e.touches?e.touches[0]:e;return{x:(c.clientX-r.left)*(canvas.width/r.width),y:(c.clientY-r.top)*(canvas.height/r.height)};};
+  canvas.addEventListener('mousedown',e=>{drawing=true;ctx.beginPath();const p=pos(e);ctx.moveTo(p.x,p.y);});
+  canvas.addEventListener('mousemove',e=>{if(!drawing)return;const p=pos(e);ctx.lineTo(p.x,p.y);ctx.strokeStyle='#1a3354';ctx.lineWidth=2;ctx.lineCap='round';ctx.stroke();});
+  canvas.addEventListener('mouseup',()=>drawing=false);
+  canvas.addEventListener('touchstart',e=>{e.preventDefault();drawing=true;ctx.beginPath();const p=pos(e);ctx.moveTo(p.x,p.y);},{passive:false});
+  canvas.addEventListener('touchmove',e=>{e.preventDefault();if(!drawing)return;const p=pos(e);ctx.lineTo(p.x,p.y);ctx.strokeStyle='#1a3354';ctx.lineWidth=2;ctx.lineCap='round';ctx.stroke();},{passive:false});
+  canvas.addEventListener('touchend',()=>drawing=false);
+}
+function clearSig(id){const c=document.getElementById(id);if(c)c.getContext('2d').clearRect(0,0,c.width,c.height);}
+function getSig(id){return document.getElementById(id)?.toDataURL();}
+
+// ══ VOUCHERS ══════════════════════════════
+function updateAmountText(){
+  const kd=parseInt(document.getElementById('v-kd').value||0);
+  const fils=parseInt(document.getElementById('v-fils').value||0);
+}
+
+function renderVouchers(){
+  document.getElementById('v-date').value=today();
+  document.getElementById('v-no').value=String(2028+vouchers.length);
+  populateSelects();
+  const el=document.getElementById('voucher-list');
+  if(!vouchers.length){el.innerHTML='<div class="empty">لا توجد سندات بعد</div>';return;}
+  el.innerHTML=[...vouchers].reverse().map(v=>{
+    const p=projOf(v.proj);
+    return`<div class="lrow"><div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:700;">${v.no} — سند ${v.type}</div><div style="font-size:10px;color:var(--text3);">${fdate(v.date)} · ${v.to} · ${p?p.name:'عام'}</div></div><div style="text-align:left;flex-shrink:0;"><div class="mono tg">${v.kd}.${String(v.fils||0).padStart(3,'0')} KD</div><div style="display:flex;gap:4px;margin-top:4px;"><button class="btn btn-blue btn-sm" onclick="printVoucher('${v.id}')">🖨️</button><button class="btn btn-ghost btn-sm" onclick="sendVoucherWAById('${v.id}')">📲</button></div></div></div>`;
+  }).join('');
+}
+
+function getVoucherData(){
+  const to=document.getElementById('v-to').value.trim();
+  const kd=document.getElementById('v-kd').value;
+  if(!to){toast('أدخل اسم المستلم','err');return null;}
+  if(!kd){toast('أدخل المبلغ','err');return null;}
+  return{id:uid(),type:document.getElementById('v-type').value,date:document.getElementById('v-date').value||today(),no:document.getElementById('v-no').value,proj:document.getElementById('v-proj').value,to,kd:parseInt(kd||0),fils:parseInt(document.getElementById('v-fils').value||0),being:document.getElementById('v-being').value,bank:document.getElementById('v-bank').value,ref:document.getElementById('v-ref').value,sig:getSig('sigV')};
+}
+
+function issueVoucher(){const v=getVoucherData();if(!v)return;vouchers.push(v);persist();renderVouchers();toast('✅ تم إصدار السند');printVoucherData(v);}
+function sendVoucherWA(){const v=getVoucherData();if(!v)return;vouchers.push(v);persist();renderVouchers();openWA(buildVoucherText(v));}
+function printVoucher(id){const v=vouchers.find(x=>x.id===id);if(v)printVoucherData(v);}
+function sendVoucherWAById(id){const v=vouchers.find(x=>x.id===id);if(v)openWA(buildVoucherText(v));}
+function buildVoucherText(v){const p=projOf(v.proj);return `سند ${v.type} رقم ${v.no}\nالتاريخ: ${fdate(v.date)}\n${v.type==='صرف'?'المستلم':'الدافع'}: ${v.to}\n${p?'المشروع: '+p.name+'\n':''}المبلغ: ${v.kd}.${String(v.fils||0).padStart(3,'0')} د.ك\nالبيان: ${v.being||'—'}\nطريقة الدفع: ${v.bank}\n\n${companyInfo.ar}`;}
+
+function printVoucherData(v){
+  const p=projOf(v.proj);
+  const html=`<div class="receipt">
+    <div class="receipt-hd">
+      <div class="rlogo"><div class="rlogo-mark">D</div><div><div class="rco-ar">${companyInfo.ar}</div><div class="rco-en">${companyInfo.en}</div></div></div>
+      <div style="text-align:left;"><div class="rtype-title">سند ${v.type==='صرف'?'الصرف':'القبض'}<br><small style="font-size:11px;">${v.type==='صرف'?'Payment Voucher':'Receipt Voucher'}</small></div><div class="rtype-num">No. ${v.no}</div></div>
+    </div>
+    <div class="rrow"><span class="rlbl">التاريخ / Date</span><span class="rval">${fdate(v.date)}</span></div>
+    <div class="rrow"><span class="rlbl">${v.type==='صرف'?'Paid to Mr./Mrs.':'Received from'}</span><span class="rval">${v.to}</span></div>
+    ${p?`<div class="rrow"><span class="rlbl">المشروع / Project</span><span class="rval">${p.code} – ${p.name}</span></div>`:''}
+    <div class="ramt-box"><span style="font-size:13px;font-weight:700;">The Sum of K.D.</span><div style="text-align:left;"><div style="font-size:22px;font-weight:900;font-family:monospace;">${v.kd} <span style="font-size:13px;opacity:.8">Fils ${String(v.fils||0).padStart(3,'0')}</span></div></div></div>
+    <div class="rbeing">Being of: ${v.being||'—'}</div>
+    <div class="rrow"><span class="rlbl">On Bank / طريقة الدفع</span><span class="rval">${v.bank}${v.ref?' – '+v.ref:''}</span></div>
+    <div class="rsigs">
+      <div class="rsig-box"><div class="rsig-lbl">Authorized Sign / توقيع المفوض</div><div class="rsig-area" style="min-height:60px;"></div></div>
+      <div class="rsig-box"><div class="rsig-lbl">Received by / توقيع المستلم</div><div class="rsig-area">${v.sig?`<img src="${v.sig}" style="max-height:55px;max-width:100%;">`:'&nbsp;'}</div></div>
+    </div>
+    <div class="rfooter">${companyInfo.ar} — ${companyInfo.en}${companyInfo.phone?' — '+companyInfo.phone:''} — الكويت</div>
+  </div>`;
+  doPrint(html);
+}
+
+// ══ MUKHALSAH ═════════════════════════════
+function renderMukhalsah(){
+  populateSelects();
+  document.getElementById('m-date').value=today();
+  document.getElementById('m-ref').value=`MUK-${String(mukhalsahs.length+1).padStart(3,'0')}`;
+  const el=document.getElementById('mukh-list');
+  if(!mukhalsahs.length){el.innerHTML='<div class="empty">لا توجد مخالصات</div>';return;}
+  el.innerHTML=[...mukhalsahs].reverse().map(m=>{const p=projOf(m.proj);return`<div class="lrow"><div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:700;">${m.ref}</div><div style="font-size:10px;color:var(--text3);">${fdate(m.date)} · ${m.name} · ${p?p.name:'—'}</div></div><div style="text-align:left;flex-shrink:0;"><div class="mono tg">${fmt(m.amount)} KD</div><div style="display:flex;gap:4px;margin-top:4px;"><button class="btn btn-blue btn-sm" onclick="printMukhalsah('${m.id}')">🖨️</button><button class="btn btn-ghost btn-sm" onclick="sendMukhalsahWAById('${m.id}')">📲</button></div></div></div>`;}).join('');
+}
+function issueMukhalsah(){const m=getMukhalsahData();if(!m)return;mukhalsahs.push(m);persist();renderMukhalsah();toast('✅ تم إصدار المخالصة');printMukhalsahData(m);}
+function sendMukhalsahWA(){const m=getMukhalsahData();if(!m)return;mukhalsahs.push(m);persist();renderMukhalsah();openWA(buildMukhalsahText(m));}
+function saveMukhalsahOnly(){const m=getMukhalsahData();if(!m)return;mukhalsahs.push(m);persist();renderMukhalsah();toast('✅ تم الحفظ');}
+function getMukhalsahData(){
+  const name=document.getElementById('m-name').value.trim();
+  if(!name){toast('أدخل اسم المقاول','err');return null;}
+  const amt=document.getElementById('m-amount').value;
+  if(!amt||parseFloat(amt)<=0){toast('أدخل المبلغ','err');return null;}
+  return{id:uid(),name,civil:document.getElementById('m-civil').value,phone:document.getElementById('m-phone').value,proj:document.getElementById('m-proj').value,amount:amt,work:document.getElementById('m-work').value,date:document.getElementById('m-date').value||today(),ref:document.getElementById('m-ref').value,sig:getSig('sigM')};
+}
+function buildMukhalsahText(m){const p=projOf(m.proj);return`مخالصة رقم: ${m.ref}\nالتاريخ: ${fdate(m.date)}\n\nأنا الموقع أسفله: ${m.name}\nرقم البطاقة المدنية: ${m.civil||'—'}\nرقم الهاتف: ${m.phone||'—'}\n\nأقر باستلام مبلغ: ${fmt(m.amount)} دينار كويتي\nمن شركة: ${companyInfo.ar}\nعن أعمال: ${m.work||'—'}\nفي مشروع: ${p?p.name:'—'}\n\nوأتعهد بعدم المطالبة بأي تعويضات أخرى.\n\n${companyInfo.ar}`;}
+function printMukhalsah(id){const m=mukhalsahs.find(x=>x.id===id);if(m)printMukhalsahData(m);}
+function sendMukhalsahWAById(id){const m=mukhalsahs.find(x=>x.id===id);if(m)openWA(buildMukhalsahText(m));}
+
+function printMukhalsahData(m){
+  const p=projOf(m.proj);
+  const html=`<div class="muk-print">
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:10px;">
+        <div style="width:50px;height:50px;background:linear-gradient(135deg,#c9962a,#a07820);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px;color:white;font-family:monospace;">D</div>
+        <div><div style="font-size:14px;font-weight:900;color:#1a3354;">${companyInfo.ar}</div><div style="font-size:11px;color:#666;">${companyInfo.en}</div></div>
+      </div>
+      <div class="muk-title">مخـالـصـة</div>
+      <div style="font-size:11px;color:#666;">رقم: ${m.ref} &nbsp;|&nbsp; التاريخ: ${fdate(m.date)}</div>
+    </div>
+    <div class="muk-body">
+      <p>أنا الموقع أسفله السيد / <span class="muk-line">${m.name}</span></p>
+      <p>الحامل لبطاقة التعريف الوطنية رقم <span class="muk-line-sm">${m.civil||'...................'}</span> &nbsp; رقم الهاتف: <span class="muk-line-sm" style="direction:ltr;display:inline-block;">${m.phone||'...................'}</span></p>
+      <p>أشهد وأنا بكامل قواي العقلية وبدون ضغط أو إكراه وبتراضٍ تام، أنني استلمت جميع مستحقاتي من</p>
+      <p>شركة <span class="muk-line">${companyInfo.ar}</span></p>
+      <p>والبالغة: <span class="muk-line">${fmt(m.amount)} دينار كويتي فقط لا غير</span></p>
+      <p>والتي اشتغلت بها في مشروع: <span class="muk-line">${p?p.name:'...............................'}</span></p>
+      <p>عن الأعمال التالية:</p>
+      <div style="background:#f8f6f0;border-right:3px solid #c9962a;padding:10px 14px;border-radius:0 8px 8px 0;margin:8px 0;line-height:2;">${m.work||'........................................................................'}</div>
+      <p>وأتعهد بعدم مطالبتي بأي تعويضات أخرى، وأُسلِّم هذه المخالصة لشركة <strong>${companyInfo.ar}</strong> لاستعمالها عند الحاجة، وعليه وقّعت.</p>
+    </div>
+    <div class="muk-sigs">
+      <div><div class="muk-sig-line">ختم وتوقيع الشركة<br>Authorized Sign</div></div>
+      <div style="text-align:center;">${m.sig?`<img src="${m.sig}" style="max-height:60px;max-width:160px;display:block;margin:0 auto 8px;">`:'<div style="height:60px;"></div>'}<div class="muk-sig-line">توقيع المقاول / العامل<br>${m.name}</div></div>
+    </div>
+    <div style="text-align:center;margin-top:20px;font-size:10px;color:#999;border-top:1px solid #eee;padding-top:10px;">حُرِّر بدولة الكويت بتاريخ: ${fdate(m.date)} — ${companyInfo.ar}</div>
+  </div>`;
+  doPrint(html);
+}
+
+// ══ CONTRACTORS ═══════════════════════════
+function renderCons(search=''){
+  const el=document.getElementById('con-list');
+  let list=contractors;
+  if(search)list=contractors.filter(c=>(c.name||'').includes(search)||(c.spec||'').includes(search)||(c.code||'').includes(search));
+  if(!list.length){el.innerHTML='<div class="empty">لا يوجد مقاولون</div>';return;}
+  el.innerHTML=list.map(c=>{
+    const total=entries.filter(e=>e.vendor===c.name).reduce((s,e)=>s+parseFloat(e.amount||0),0);
+    const tasTotal=taswiyat.filter(t=>t.con===c.id).reduce((s,t)=>{const a=parseFloat(t.amount||0);return t.type==='اضافة'?s+a:s-a;},0);
+    return`<div class="ccard"><div class="cav">${(c.name||'?').charAt(0)}</div><div style="flex:1;min-width:0;"><div style="font-weight:800;font-size:13px;">${c.name}</div><div style="font-size:10px;color:var(--text3);margin-top:2px;">${c.code||''} · <span class="badge bb">${c.type}</span></div>${c.spec?`<div style="font-size:10px;color:var(--text3);">${c.spec}</div>`:''}${c.phone?`<div style="font-size:10px;color:var(--text3);">📞 ${c.phone}</div>`:''}${c.civil?`<div style="font-size:10px;color:var(--text3);">🪪 ${c.civil}</div>`:''}${tasTotal!==0?`<div style="font-size:10px;margin-top:2px;">تسويات: <span style="color:${tasTotal>0?'var(--green2)':'var(--red2)'};font-family:var(--mono)">${tasTotal>0?'+':''}${fmt(tasTotal)} KD</span></div>`:''}</div><div style="text-align:left;"><div class="mono tg" style="font-size:12px;">${fmt(total)} KD</div><button class="btn btn-red btn-sm" style="margin-top:6px;" onclick="delCon('${c.id}')">حذف</button></div></div>`;
+  }).join('');
+  renderTaswiyat();
+}
+function openConModal(){document.getElementById('c-code').value=`CON-${String(contractors.length+1).padStart(3,'0')}`;populateSelects();document.getElementById('conModal').classList.add('on');}
+function saveCon(){
+  const name=document.getElementById('c-name').value.trim();if(!name){toast('أدخل الاسم','err');return;}
+  contractors.push({id:uid(),name,civil:document.getElementById('c-civil').value,code:document.getElementById('c-code').value,type:document.getElementById('c-type').value,spec:document.getElementById('c-spec').value,phone:document.getElementById('c-phone').value,cat:document.getElementById('c-cat').value});
+  persist();closeM('conModal');renderCons();toast(`✅ تم إضافة ${name}`);populateSelects();
+  ['c-name','c-civil','c-spec','c-phone'].forEach(id=>document.getElementById(id).value='');
+}
+function delCon(id){if(!confirm('حذف هذا المقاول؟'))return;contractors=contractors.filter(c=>c.id!==id);persist();renderCons();toast('تم الحذف','err');}
+
+function renderTaswiyat(){
+  const el=document.getElementById('taswiya-list');
+  if(!taswiyat.length){el.innerHTML='<div class="empty">لا توجد تسويات</div>';return;}
+  el.innerHTML=[...taswiyat].reverse().map(t=>{const c=contractors.find(x=>x.id===t.con);const p=projOf(t.proj);const clr=t.type==='اضافة'?'bgr':'br';const sign=t.type==='اضافة'?'+':'-';return`<div class="lrow"><div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:700;">${c?c.name:'—'} <span class="badge ${clr}">${t.type}</span></div><div style="font-size:10px;color:var(--text3);">${fdate(t.date)} · ${p?p.name:'—'}</div>${t.desc?`<div style="font-size:10px;color:var(--text3);">${t.desc}</div>`:''}</div><div class="mono" style="color:${t.type==='اضافة'?'var(--green2)':'var(--red2)'};flex-shrink:0;">${sign}${fmt(t.amount)} KD</div></div>`;}).join('');
+}
+function openTaswiyaModal(){
+  populateSelects();
+  const tc=document.getElementById('t-con');tc.innerHTML='<option value="">-- اختر --</option>';contractors.forEach(c=>tc.innerHTML+=`<option value="${c.id}">${c.name}</option>`);
+  document.getElementById('t-date').value=today();
+  document.getElementById('taswiyaModal').classList.add('on');
+}
+function saveTaswiya(){
+  const con=document.getElementById('t-con').value;const proj=document.getElementById('t-proj').value;
+  if(!con||!proj){toast('اختر المقاول والمشروع','err');return;}
+  const amt=document.getElementById('t-amount').value;if(!amt){toast('أدخل المبلغ','err');return;}
+  taswiyat.push({id:uid(),con,proj,type:document.getElementById('t-type').value,amount:amt,desc:document.getElementById('t-desc').value,date:document.getElementById('t-date').value||today()});
+  persist();closeM('taswiyaModal');renderCons();toast('✅ تم حفظ التسوية');
+}
+
+// ══ WORKERS ═══════════════════════════════
+function filterWorkers(f,el){wFilter=f;document.querySelectorAll('#wPills .pill').forEach(p=>p.classList.remove('on'));el.classList.add('on');renderWorkers();}
+
+function renderWorkers(){
+  populateSelects();
+  const el=document.getElementById('worker-list');
+  let list=wFilter==='all'?workers:workers.filter(w=>w.wtype===wFilter);
+  if(!list.length){el.innerHTML='<div class="empty">لا يوجد عمال</div>';return;}
+  el.innerHTML=list.map(w=>{
+    const atts=attendance.filter(a=>a.worker===w.id);
+    const total=atts.reduce((s,a)=>s+(parseFloat(a.days||0)*parseFloat(a.wage||0)),0);
+    const iqamaWarning=w.iqama&&daysUntil(w.iqama)<=60?`<div style="font-size:10px;color:var(--red2);margin-top:2px;">⚠️ إقامة تنتهي: ${fdate(w.iqama)} (${daysUntil(w.iqama)} يوم)</div>`:'';
+    const passportWarning=w.passport&&daysUntil(w.passport)<=60?`<div style="font-size:10px;color:var(--orange2);margin-top:2px;">⚠️ جواز ينتهي: ${fdate(w.passport)} (${daysUntil(w.passport)} يوم)</div>`:'';
+    return`<div class="ccard"><div class="cav" style="color:var(--blue)">${(w.name||'?').charAt(0)}</div><div style="flex:1;min-width:0;"><div style="font-weight:800;font-size:13px;">${w.name}</div><div style="font-size:10px;color:var(--text3);margin-top:2px;">${w.code||''} · ${w.spec||''} · <span class="badge ${w.wtype==='دائم'?'bgr':'bo'}">${w.wtype||'دائم'}</span></div>${w.nat?`<div style="font-size:10px;color:var(--text3);">${w.nat}</div>`:''}${w.civil?`<div style="font-size:10px;color:var(--text3);">🪪 ${w.civil}</div>`:''}${w.phone?`<div style="font-size:10px;color:var(--text3);">📞 ${w.phone}</div>`:''}${iqamaWarning}${passportWarning}<div style="font-size:10px;color:var(--text3);margin-top:2px;">أجر يومي: <span style="color:var(--gold);font-family:var(--mono)">${fmt(w.wage)} KD</span></div></div><div style="text-align:left;"><div class="mono tg" style="font-size:12px;">${fmt(total)} KD</div><div style="font-size:9px;color:var(--text3)">${atts.length} يوم</div><button class="btn btn-red btn-sm" style="margin-top:5px;" onclick="delWorker('${w.id}')">حذف</button></div></div>`;
+  }).join('');
+  renderAttendance();
+}
+function openWorkerModal(){document.getElementById('w-code').value=`WRK-${String(workers.length+1).padStart(3,'0')}`;document.getElementById('workerModal').classList.add('on');}
+function saveWorker(){
+  const name=document.getElementById('w-name').value.trim();if(!name){toast('أدخل الاسم','err');return;}
+  workers.push({id:uid(),name,code:document.getElementById('w-code').value,wtype:document.getElementById('w-wtype').value,nat:document.getElementById('w-nat').value,spec:document.getElementById('w-spec').value,wage:document.getElementById('w-wage').value,civil:document.getElementById('w-civil').value,phone:document.getElementById('w-phone').value,iqama:document.getElementById('w-iqama').value,passport:document.getElementById('w-passport').value});
+  persist();closeM('workerModal');renderWorkers();toast(`✅ تم إضافة ${name}`);populateSelects();checkAlerts();
+  ['w-name','w-nat','w-spec','w-wage','w-civil','w-phone','w-iqama','w-passport'].forEach(id=>document.getElementById(id).value='');
+}
+function delWorker(id){if(!confirm('حذف هذا العامل؟'))return;workers=workers.filter(w=>w.id!==id);attendance=attendance.filter(a=>a.worker!==id);persist();renderWorkers();toast('تم الحذف','err');}
+
+function saveAttendance(){
+  const worker=document.getElementById('att-worker').value;const proj=document.getElementById('att-proj').value;
+  const days=document.getElementById('att-days').value;const wage=document.getElementById('att-wage').value;
+  if(!worker){toast('اختر العامل','err');return;}if(!proj){toast('اختر المشروع','err');return;}if(!days||!wage){toast('أدخل الأيام والأجر','err');return;}
+  const w=workers.find(x=>x.id===worker);
+  const rec={id:uid(),date:document.getElementById('att-date').value||today(),worker,proj,days:parseFloat(days),wage:parseFloat(wage),notes:document.getElementById('att-notes').value};
+  attendance.push(rec);
+  if(w)entries.push({id:uid(),date:rec.date,regDate:today(),voucher:(++vseq)+'',etype:'صرف',proj,cat:'101',vendor:w.name,desc:`يومية – ${rec.days} يوم${rec.notes?' – '+rec.notes:''}`,amount:(rec.days*rec.wage).toFixed(3),pay:'نقد',notes:'',outside:false});
+  persist();renderAttendance();renderWorkers();toast(`✅ تم تسجيل ${w?w.name:''}`);
+  document.getElementById('att-days').value='1';document.getElementById('att-notes').value='';
+}
+function renderAttendance(){
+  const tb=document.getElementById('att-body');
+  const tot=attendance.reduce((s,a)=>s+(parseFloat(a.days||0)*parseFloat(a.wage||0)),0);
+  document.getElementById('att-tot').textContent=fmt(tot);
+  if(!attendance.length){tb.innerHTML=`<tr><td colspan="7"><div class="empty">لا توجد سجلات</div></td></tr>`;return;}
+  tb.innerHTML=[...attendance].reverse().map(a=>{const w=workers.find(x=>x.id===a.worker);const p=projOf(a.proj);return`<tr><td style="font-size:10px;white-space:nowrap;">${fdate(a.date)}</td><td style="font-size:11px;">${p?p.code:'—'}</td><td style="font-size:11px;font-weight:700;">${w?w.name:'—'}</td><td class="mono" style="text-align:center;">${a.days}</td><td class="mono tgo">${fmt(a.wage)}</td><td class="mono tg">${fmt(a.days*a.wage)}</td><td><button class="btn btn-red btn-sm" onclick="delAtt('${a.id}')" style="padding:3px 7px;">✕</button></td></tr>`;}).join('');
+}
+function delAtt(id){if(!confirm('حذف؟'))return;attendance=attendance.filter(a=>a.id!==id);persist();renderAttendance();toast('تم الحذف','err');}
+
+// ══ CARS ══════════════════════════════════
+function renderCars(){
+  populateSelects();
+  const el=document.getElementById('car-list');
+  if(!cars.length){el.innerHTML='<div class="empty">لا توجد سيارات</div>';return;}
+  el.innerHTML=cars.map(c=>{
+    const exps=carExpenses.filter(e=>e.car===c.id);
+    const total=exps.reduce((s,e)=>s+parseFloat(e.amount||0),0);
+    const insWarn=c.insExp&&daysUntil(c.insExp)<=30?`<div style="font-size:10px;color:var(--red2);">⚠️ التأمين ينتهي: ${fdate(c.insExp)} (${daysUntil(c.insExp)} يوم)</div>`:'';
+    const licWarn=c.licExp&&daysUntil(c.licExp)<=30?`<div style="font-size:10px;color:var(--orange2);">⚠️ الترخيص ينتهي: ${fdate(c.licExp)} (${daysUntil(c.licExp)} يوم)</div>`:'';
+    return`<div class="ccard"><div class="cav" style="color:var(--blue);font-size:18px;">🚗</div><div style="flex:1;min-width:0;"><div style="font-weight:800;font-size:13px;">${c.name}</div><div style="font-size:10px;color:var(--text3);margin-top:2px;">رقم اللوحة: <span style="font-family:var(--mono)">${c.plate}</span> · <span class="badge bb">${c.use}</span></div>${insWarn}${licWarn}</div><div style="text-align:left;"><div class="mono tg" style="font-size:12px;">${fmt(total)} KD</div><div style="font-size:9px;color:var(--text3)">${exps.length} مصروف</div><button class="btn btn-red btn-sm" style="margin-top:5px;" onclick="delCar('${c.id}')">حذف</button></div></div>`;
+  }).join('');
+  renderCarExpenses();
+}
+function openCarModal(){document.getElementById('carModal').classList.add('on');}
+function saveCar(){
+  const name=document.getElementById('car-name').value.trim();if(!name){toast('أدخل نوع السيارة','err');return;}
+  cars.push({id:uid(),name,plate:document.getElementById('car-plate').value,chassis:document.getElementById('car-chassis').value,insExp:document.getElementById('car-ins-exp').value,licExp:document.getElementById('car-lic-exp').value,use:document.getElementById('car-use').value});
+  persist();closeM('carModal');renderCars();toast(`✅ تم إضافة ${name}`);populateSelects();checkAlerts();
+  ['car-name','car-plate','car-chassis','car-ins-exp','car-lic-exp'].forEach(id=>document.getElementById(id).value='');
+}
+function delCar(id){if(!confirm('حذف هذه السيارة؟'))return;cars=cars.filter(c=>c.id!==id);carExpenses=carExpenses.filter(e=>e.car!==id);persist();renderCars();toast('تم الحذف','err');}
+function saveCarExpense(){
+  const car=document.getElementById('car-sel').value;if(!car){toast('اختر السيارة','err');return;}
+  const amt=document.getElementById('car-amount').value;if(!amt){toast('أدخل المبلغ','err');return;}
+  carExpenses.push({id:uid(),car,type:document.getElementById('car-exp-type').value,date:document.getElementById('car-date').value||today(),amount:amt,notes:document.getElementById('car-notes').value});
+  // Also log as entry under office expenses
+  entries.push({id:uid(),date:document.getElementById('car-date').value||today(),regDate:today(),voucher:(++vseq)+'',etype:'مكتب',proj:'',cat:'105',vendor:cars.find(c=>c.id===car)?.name||'سيارة',desc:`${document.getElementById('car-exp-type').value} – ${document.getElementById('car-notes').value||''}`,amount:amt,pay:'نقد',notes:'',outside:false});
+  persist();renderCarExpenses();renderCars();toast(`✅ تم حفظ مصروف السيارة`);
+  document.getElementById('car-amount').value='';document.getElementById('car-notes').value='';
+}
+function renderCarExpenses(){
+  const el=document.getElementById('car-exp-list');
+  if(!carExpenses.length){el.innerHTML='<div class="empty">لا توجد مصاريف</div>';return;}
+  el.innerHTML=[...carExpenses].reverse().map(e=>{const c=cars.find(x=>x.id===e.car);return`<div class="lrow"><div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:700;">${c?c.name:'—'} — ${e.type}</div><div style="font-size:10px;color:var(--text3);">${fdate(e.date)}${e.notes?' · '+e.notes:''}</div></div><span class="mono tr">${fmt(e.amount)} KD</span></div>`;}).join('');
+}
+
+// ══ ACCOUNTS ══════════════════════════════
+function renderAccounts(){
+  const search=(document.getElementById('acc-search')||{}).value||'';
+  let html='';
+  Object.entries(GROUPS).forEach(([grp,gname])=>{
+    if(accFilter!=='all'&&accFilter!==grp)return;
+    let items=ACCOUNTS.filter(a=>a.g===grp&&!a.main);
+    if(search)items=items.filter(a=>a.n.includes(search)||a.c.includes(search));
+    if(!items.length&&search)return;
+    const grpTotal=items.reduce((s,a)=>s+entries.filter(e=>e.cat===a.c).reduce((ss,e)=>ss+parseFloat(e.amount||0),0),0);
+    html+=`<div style="margin-bottom:14px;">
+      <div class="stitle">${gname} <span style="font-family:var(--mono);color:var(--green2);font-size:10px;font-weight:700;">${fmt(grpTotal)} KD</span></div>
+      ${items.map(a=>{
+        const amt=entries.filter(e=>e.cat===a.c).reduce((s,e)=>s+parseFloat(e.amount||0),0);
+        if(!amt&&!search)return'';
+        return`<div class="lrow" style="cursor:pointer;" onclick="filterByAccount('${a.c}')">
+          <span class="lcode">${a.c}</span>
+          <span class="lname">${a.n}${a.u?` <span style="color:var(--text3);font-size:9px;">(${a.u})</span>`:''}</span>
+          <span class="lamt" style="color:${amt>0?'var(--green2)':'var(--text3)'};">${fmt(amt)} KD</span>
+        </div>`;
+      }).join('')}
+    </div>`;
+  });
+  document.getElementById('acc-tree').innerHTML=html||'<div class="empty">لا توجد نتائج</div>';
+}
+function filterAcc(f,el){accFilter=f;document.querySelectorAll('#accPills .pill').forEach(p=>p.classList.remove('on'));el.classList.add('on');renderAccounts();}
+function filterByAccount(cat){
+  // Go to journal filtered by this account
+  go('journal');
+  setTimeout(()=>{
+    document.getElementById('j-search').value=cat;
+    renderJournal();
+  },200);
+}
+
+// ══ REPORTS ═══════════════════════════════
+function renderReports(){
+  populateSelects();
+  const projFilter=document.getElementById('r-proj-filter')?.value||'';
+  const monthFilter=document.getElementById('r-month-filter')?.value||'';
+  let filtered=entries;
+  if(projFilter)filtered=filtered.filter(e=>e.proj===projFilter);
+  if(monthFilter)filtered=filtered.filter(e=>e.date&&e.date.startsWith(monthFilter));
+  const income=filtered.filter(e=>e.etype==='قبض'||ACCOUNTS.find(a=>a.c===e.cat&&a.income)).reduce((s,e)=>s+parseFloat(e.amount||0),0);
+  const expense=filtered.filter(e=>e.etype!=='قبض'&&!ACCOUNTS.find(a=>a.c===e.cat&&a.income)).reduce((s,e)=>s+parseFloat(e.amount||0),0);
+  document.getElementById('r-income').textContent=fmt(income);
+  document.getElementById('r-expense').textContent=fmt(expense);
+  document.getElementById('r-profit').textContent=fmt(income-expense);
+  document.getElementById('r-office').textContent=fmt(officeTotal());
+
+  // Profit per project
+  const pp=document.getElementById('r-projs-profit');
+  pp.innerHTML=projects.map(p=>{
+    const pInc=incomeP(p.id);const pExp=sumP(p.id);const pPro=pInc-pExp;
+    return`<div class="lrow">
+      <span class="lcode">${p.code}</span>
+      <span class="lname">${p.name}</span>
+      <div style="text-align:left;min-width:180px;">
+        <div style="font-size:10px;color:var(--text3);">وارد: <span class="mono tg">${fmt(pInc)}</span> | مصروف: <span class="mono tr">${fmt(pExp)}</span></div>
+        <div style="font-family:var(--mono);font-size:12px;font-weight:700;color:${pPro>=0?'var(--green2)':'var(--red2)'}">${pPro>=0?'ربح':'خسارة'}: ${fmt(Math.abs(pPro))} KD</div>
+      </div>
+    </div>`;
+  }).join('')||'<div class="empty">لا توجد مشاريع</div>';
+
+  // Details
+  const catMap={};
+  filtered.forEach(e=>{if(!catMap[e.cat])catMap[e.cat]=0;catMap[e.cat]+=parseFloat(e.amount||0);});
+  document.getElementById('r-details').innerHTML=Object.entries(catMap).sort((a,b)=>b[1]-a[1]).map(([cat,amt])=>`<div class="lrow"><span class="lcode">${cat}</span><span class="lname">${ACC[cat]||cat}</span><span class="lamt">${fmt(amt)} KD</span></div>`).join('')||'<div class="empty">لا توجد بيانات</div>';
+}
+
+// ══ SETTINGS ══════════════════════════════
+function renderSettings(){
+  document.getElementById('co-ar').value=companyInfo.ar;
+  document.getElementById('co-en').value=companyInfo.en;
+  document.getElementById('co-phone').value=companyInfo.phone||'';
+  document.getElementById('co-addr').value=companyInfo.addr||'الكويت';
+  renderUsers();
+}
+function saveCompanyInfo(){companyInfo={ar:document.getElementById('co-ar').value,en:document.getElementById('co-en').value,phone:document.getElementById('co-phone').value,addr:document.getElementById('co-addr').value};persist();toast('✅ تم حفظ بيانات الشركة');}
+
+function renderUsers(){
+  const el=document.getElementById('user-list');
+  el.innerHTML=users.map(u=>`<div class="lrow"><div style="flex:1;"><div style="font-weight:800;font-size:13px;">${u.name}</div><div style="font-size:10px;color:var(--text3);">${u.username} · <span class="badge ${u.role==='admin'?'bg':u.role==='accountant'?'bb':'bgr'}">${u.role==='admin'?'مدير':u.role==='accountant'?'محاسب':'مشاهد'}</span></div></div>${u.id!=='u1'?`<button class="btn btn-red btn-sm" onclick="delUser('${u.id}')">حذف</button>`:''}</div>`).join('');
+}
+function openUserModal(){document.getElementById('userModal').classList.add('on');}
+function saveUser(){
+  const name=document.getElementById('u-name').value.trim();const uname=document.getElementById('u-user').value.trim();const pass=document.getElementById('u-pass').value;
+  if(!name||!uname||!pass){toast('أكمل جميع الحقول','err');return;}
+  if(users.find(u=>u.username===uname)){toast('اسم المستخدم موجود','err');return;}
+  users.push({id:uid(),name,username:uname,password:pass,role:document.getElementById('u-role').value});
+  persist();closeM('userModal');renderUsers();toast(`✅ تم إضافة ${name}`);
+  ['u-name','u-user','u-pass'].forEach(id=>document.getElementById(id).value='');
+}
+function delUser(id){if(!confirm('حذف هذا المستخدم؟'))return;users=users.filter(u=>u.id!==id);persist();renderUsers();toast('تم الحذف','err');}
+
+// ══ CLOUD / DRIVE ═════════════════════════
+function cloudSave(){
+  if(driveToken){driveDoSave();return;}
+  // Export as JSON
+  const data={projects,entries,contractors,workers,attendance,mukhalsahs,inkaz,vouchers,taswiyat,cars,carExpenses,users,companyInfo,vseq,savedAt:new Date().toISOString(),version:'Pro-Final'};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`داركم_Pro_${today()}.json`;a.click();
+  document.getElementById('cloudBtn').textContent='☁️ تم ✓';
+  document.getElementById('cloudBtn').className='tbtn tbtn-ok';
+  toast('✅ تم التصدير — احفظ الملف في Google Drive','info');
+}
+
+function driveLoad(){
+  if(!driveToken){
+    try{
+      if(!tokenClient){
+        tokenClient=google.accounts.oauth2.initTokenClient({
+          client_id:DRIVE_CLIENT_ID,scope:DRIVE_SCOPES,
+          callback:(resp)=>{if(resp.access_token){driveToken=resp.access_token;document.getElementById('cloudBtn').textContent='☁️ Drive ✓';document.getElementById('cloudBtn').className='tbtn tbtn-ok';driveLoadData();}}
+        });
+      }
+      tokenClient.requestAccessToken();
+    }catch(e){toast('تعذر الاتصال — تأكد من الاتصال بالإنترنت','err');}
+    return;
+  }
+  driveLoadData();
+}
+
+async function driveLoadData(){
+  try{
+    const search=await fetch(`https://www.googleapis.com/drive/v3/files?q=name='${DRIVE_FILE}' and trashed=false`,{headers:{Authorization:`Bearer ${driveToken}`}});
+    const sdata=await search.json();
+    if(!sdata.files||!sdata.files.length){toast('لا توجد بيانات على Drive','err');return;}
+    driveFileId=sdata.files[0].id;
+    const res=await fetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`,{headers:{Authorization:`Bearer ${driveToken}`}});
+    const d=await res.json();
+    if(!confirm(`استيراد البيانات من Drive؟\nتاريخ آخر حفظ: ${d.savedAt?new Date(d.savedAt).toLocaleDateString('ar-KW'):'—'}`))return;
+    projects=d.projects||[];entries=d.entries||[];contractors=d.contractors||[];workers=d.workers||[];
+    attendance=d.attendance||[];mukhalsahs=d.mukhalsahs||[];inkaz=d.inkaz||[];vouchers=d.vouchers||[];
+    taswiyat=d.taswiyat||[];cars=d.cars||[];carExpenses=d.carExpenses||[];
+    users=d.users&&d.users.length?d.users:users;companyInfo=d.companyInfo||companyInfo;vseq=d.vseq||vseq;
+    persist();renderDash();populateSelects();
+    toast('✅ تم استيراد البيانات من Drive','info');
+  }catch(e){toast('خطأ في تحميل البيانات من Drive','err');}
+}
+
+async function driveDoSave(){
+  if(!driveToken)return;
+  const data={projects,entries,contractors,workers,attendance,mukhalsahs,inkaz,vouchers,taswiyat,cars,carExpenses,users,companyInfo,vseq,savedAt:new Date().toISOString(),version:'Pro-Final'};
+  const content=JSON.stringify(data,null,2);
+  try{
+    if(!driveFileId){
+      const search=await fetch(`https://www.googleapis.com/drive/v3/files?q=name='${DRIVE_FILE}' and trashed=false`,{headers:{Authorization:`Bearer ${driveToken}`}});
+      const sdata=await search.json();
+      if(sdata.files&&sdata.files.length)driveFileId=sdata.files[0].id;
+    }
+    if(driveFileId){
+      await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`,{method:'PATCH',headers:{Authorization:`Bearer ${driveToken}`,'Content-Type':'application/json'},body:content});
+    }else{
+      const meta=JSON.stringify({name:DRIVE_FILE,mimeType:'application/json'});
+      const form=new FormData();form.append('metadata',new Blob([meta],{type:'application/json'}));form.append('file',new Blob([content],{type:'application/json'}));
+      const res=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{method:'POST',headers:{Authorization:`Bearer ${driveToken}`},body:form});
+      const saved=await res.json();driveFileId=saved.id;
+    }
+    document.getElementById('cloudBtn').textContent='☁️ محفوظ ✓';
+    document.getElementById('cloudBtn').className='tbtn tbtn-ok';
+    toast('✅ تم الحفظ على Google Drive','info');
+  }catch(e){toast('خطأ في الحفظ على Drive','err');}
+}
+
+function importData(input){
+  if(!input.files[0])return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!data.version){toast('ملف غير صحيح','err');return;}
+      if(!confirm(`استيراد البيانات؟ سيتم استبدال البيانات الحالية.`))return;
+      projects=data.projects||[];entries=data.entries||[];contractors=data.contractors||[];workers=data.workers||[];
+      attendance=data.attendance||[];mukhalsahs=data.mukhalsahs||[];inkaz=data.inkaz||[];vouchers=data.vouchers||[];
+      taswiyat=data.taswiyat||[];cars=data.cars||[];carExpenses=data.carExpenses||[];
+      users=data.users&&data.users.length?data.users:users;companyInfo=data.companyInfo||companyInfo;vseq=data.vseq||vseq;
+      persist();renderDash();populateSelects();
+      toast('✅ تم استيراد البيانات','info');
+    }catch(err){toast('خطأ في قراءة الملف','err');}
+  };reader.readAsText(input.files[0]);
+}
+
+function clearAllData(){
+  if(!confirm('حذف جميع البيانات نهائياً؟ لا يمكن التراجع!'))return;
+  if(!confirm('تأكيد نهائي — سيتم حذف كل شي؟'))return;
+  projects=[];entries=[];contractors=[];workers=[];attendance=[];mukhalsahs=[];inkaz=[];vouchers=[];taswiyat=[];cars=[];carExpenses=[];vseq=3000;
+  persist();renderDash();toast('تم حذف الكل','err');
+}
+
+// ══ EXCEL EXPORT ══════════════════════════
+function exportExcel(){
+  if(!entries.length&&!attendance.length){toast('لا توجد بيانات','err');return;}
+  const wb=XLSX.utils.book_new();
+  // اليومية
+  const jr=[['#','التاريخ','تاريخ التسجيل','نوع القيد','المشروع','البند','المقاول/المورد','الوصف','نوع الدفع','المبلغ KD','خارج العقد','رقم السند']];
+  entries.forEach((e,i)=>{const p=projOf(e.proj);jr.push([i+1,e.date,e.regDate||e.date,e.etype,p?p.code+' '+p.name:e.etype==='مكتب'?'مكتب':'—',e.cat+' '+(ACC[e.cat]||''),e.vendor,e.desc,e.pay,parseFloat(e.amount||0),e.outside?'نعم':'لا',e.voucher]);});
+  jr.push(['','','','','','','','','الإجمالي',entries.reduce((s,e)=>s+parseFloat(e.amount||0),0),'','']);
+  const wsJ=XLSX.utils.aoa_to_sheet(jr);wsJ['!cols']=[4,12,12,10,20,20,20,25,12,14,8,14].map(w=>({wch:w}));
+  XLSX.utils.book_append_sheet(wb,wsJ,'اليومية المركزية');
+  // مشاريع
+  projects.forEach(p=>{const pe=entries.filter(e=>e.proj===p.id);if(!pe.length)return;const rows=[['التاريخ','النوع','البند','المقاول','الوصف','نوع الدفع','المبلغ KD','رقم السند']];pe.forEach(e=>rows.push([e.date,e.etype,e.cat+' '+(ACC[e.cat]||''),e.vendor,e.desc,e.pay,parseFloat(e.amount||0),e.voucher]));rows.push(['','','','','','الإجمالي',pe.reduce((s,e)=>s+parseFloat(e.amount||0),0),'']);const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[12,10,20,20,25,12,14,14].map(w=>({wch:w}));XLSX.utils.book_append_sheet(wb,ws,(p.code+' '+p.name).substring(0,31));});
+  // ملخص مشاريع
+  const sr=[['المشروع','الكود','النوع','العقد','قيمة العقد','الميزانية','المصروف','الوارد','الربح/الخسارة','العميل']];
+  projects.forEach(p=>{const sp=sumP(p.id);const inc=incomeP(p.id);sr.push([p.name,p.code,p.type,p.contract,parseFloat(p.value||0),parseFloat(p.budget||0),sp,inc,inc-sp,p.client]);});
+  const wsS=XLSX.utils.aoa_to_sheet(sr);wsS['!cols']=[20,8,12,12,14,14,14,14,14,18].map(w=>({wch:w}));
+  XLSX.utils.book_append_sheet(wb,wsS,'ملخص المشاريع');
+  // مقاولون
+  const cr=[['الكود','الاسم','التصنيف','التخصص','رقم البطاقة المدنية','إجمالي القيود KD','عدد القيود','الهاتف']];
+  contractors.forEach(c=>{const ce=entries.filter(e=>e.vendor===c.name);cr.push([c.code,c.name,c.type,c.spec,c.civil||'',ce.reduce((s,e)=>s+parseFloat(e.amount||0),0),ce.length,c.phone]);});
+  const wsCon=XLSX.utils.aoa_to_sheet(cr);wsCon['!cols']=[10,20,12,25,14,16,10,14].map(w=>({wch:w}));
+  XLSX.utils.book_append_sheet(wb,wsCon,'تقرير المقاولين');
+  // عمال
+  if(attendance.length){
+    const ar=[['التاريخ','المشروع','العامل','النوع','الأيام','الأجر','الإجمالي KD','ملاحظات']];
+    attendance.forEach(a=>{const w=workers.find(x=>x.id===a.worker);const p=projOf(a.proj);ar.push([a.date,p?p.code:'',w?w.name:'',w?w.wtype||'':'',a.days,a.wage,a.days*a.wage,a.notes]);});
+    ar.push(['','','','','','الإجمالي',attendance.reduce((s,a)=>s+(a.days*a.wage),0),'']);
+    const wsA=XLSX.utils.aoa_to_sheet(ar);wsA['!cols']=[12,10,20,10,8,12,14,20].map(w=>({wch:w}));
+    XLSX.utils.book_append_sheet(wb,wsA,'سجل العمال');
+  }
+  // سندات
+  if(vouchers.length){
+    const vr=[['رقم السند','التاريخ','النوع','المستلم','المبلغ KD','البيان','طريقة الدفع']];
+    vouchers.forEach(v=>vr.push([v.no,v.date,`سند ${v.type}`,v.to,`${v.kd}.${String(v.fils||0).padStart(3,'0')}`,v.being,v.bank]));
+    const wsV=XLSX.utils.aoa_to_sheet(vr);wsV['!cols']=[12,12,12,20,12,30,12].map(w=>({wch:w}));
+    XLSX.utils.book_append_sheet(wb,wsV,'سجل السندات');
+  }
+  // مخالصات
+  if(mukhalsahs.length){
+    const mr=[['رقم','التاريخ','المقاول','البطاقة المدنية','الهاتف','المشروع','المبلغ KD','الأعمال']];
+    mukhalsahs.forEach(m=>{const p=projOf(m.proj);mr.push([m.ref,m.date,m.name,m.civil,m.phone,p?p.name:'—',parseFloat(m.amount||0),m.work]);});
+    const wsM=XLSX.utils.aoa_to_sheet(mr);wsM['!cols']=[12,12,20,14,14,20,14,30].map(w=>({wch:w}));
+    XLSX.utils.book_append_sheet(wb,wsM,'سجل المخالصات');
+  }
+  // سيارات
+  if(carExpenses.length){
+    const xr=[['التاريخ','السيارة','نوع المصروف','المبلغ KD','ملاحظات']];
+    carExpenses.forEach(e=>{const c=cars.find(x=>x.id===e.car);xr.push([e.date,c?c.name:'—',e.type,parseFloat(e.amount||0),e.notes]);});
+    const wsX=XLSX.utils.aoa_to_sheet(xr);wsX['!cols']=[12,20,14,12,20].map(w=>({wch:w}));
+    XLSX.utils.book_append_sheet(wb,wsX,'مصاريف السيارات');
+  }
+  XLSX.writeFile(wb,`داركم_Pro_${today()}.xlsx`);
+  toast('✅ تم تصدير Excel الكامل');
+}
+
+// ══ UTILS ═════════════════════════════════
+function show(id){const el=document.getElementById(id);if(el)el.classList.add('on');}
+function hide(id){const el=document.getElementById(id);if(el)el.classList.remove('on');}
+function closeM(id){const el=document.getElementById(id);if(el)el.classList.remove('on');}
+document.querySelectorAll('.overlay').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov)ov.classList.remove('on');}));
+function openWA(text){window.open(`https://wa.me/?text=${encodeURIComponent(text)}`);}
+function doPrint(html){document.getElementById('printArea').innerHTML=html;document.getElementById('printArea').style.display='block';window.print();setTimeout(()=>document.getElementById('printArea').style.display='none',1000);}
+
+// ══ INIT ══════════════════════════════════
+load();
+tick(); setInterval(tick,30000);
+document.getElementById('f-date').value=today();
+document.getElementById('att-date').value=today();
+document.getElementById('car-date').value=today();
+initSig('sigV');
+initSig('sigM');
+</script>
+</body>
+</html>
