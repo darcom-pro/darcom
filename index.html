@@ -254,8 +254,8 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 </head>
 <body>
 
-<!-- LOGIN -->
-<div class="login-wrap" id="loginWrap">
+<!-- LOGIN REMOVED - Direct Access -->
+<div class="login-wrap" id="loginWrap" style="display:none;">
   <div class="login-box">
     <div class="login-logo">D</div>
     <div class="login-title">داركم Pro</div>
@@ -267,7 +267,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   </div>
 </div>
 
-<div class="app" id="mainApp" style="display:none;">
+<div class="app" id="mainApp" style="display:flex;">
 
 <!-- TOPBAR -->
 <div class="topbar">
@@ -280,7 +280,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   </div>
   <div class="topbar-r">
     <button class="tbtn tbtn-off" id="cloudBtn" onclick="cloudSave()">☁️ Drive</button>
-    <button class="tbtn tbtn-gold" id="topUser" onclick="logout()">خروج</button>
+    <button class="tbtn tbtn-gold" id="topUser">داركم Pro</button>
     <div class="top-time" id="topTime"></div>
   </div>
 </div>
@@ -2320,6 +2320,12 @@ function doPrint(html){document.getElementById('printArea').innerHTML=html;docum
 
 // ══ INIT ══════════════════════════════════
 load();
+// دخول مباشر بدون باسورد
+currentUser = users.find(u=>u.role==='admin') || users[0];
+document.getElementById('loginWrap').style.display='none';
+document.getElementById('mainApp').style.display='flex';
+document.getElementById('topUser').textContent=(currentUser?currentUser.name:'المدير')+' ↩';
+populateSelects(); renderDash(); checkAlerts();
 tick(); setInterval(tick,30000);
 document.getElementById('f-date').value=today();
 document.getElementById('att-date').value=today();
