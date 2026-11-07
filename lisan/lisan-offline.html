@@ -1085,7 +1085,8 @@ const en = s => `<bdi class="en" dir="ltr">${esc(s)}</bdi>`;
 const dkey = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const today = () => dkey(new Date());
 const addDays = (k, n) => { const [y, m, d] = k.split('-').map(Number); return dkey(new Date(y, m - 1, d + n)); };
-const AR_DIG = n => String(n);
+const IN_CLAUDE = !!(window.claude && typeof window.claude.use === 'function');
+const VIEWER_THEME = document.documentElement.dataset.theme;
 
 const CONTR = { "i'm": "i am", "you're": "you are", "we're": "we are", "they're": "they are", "he's": "he is", "she's": "she is", "it's": "it is", "that's": "that is", "what's": "what is", "here's": "here is", "there's": "there is", "isn't": "is not", "aren't": "are not", "wasn't": "was not", "weren't": "were not", "don't": "do not", "doesn't": "does not", "didn't": "did not", "can't": "cannot", "won't": "will not", "i'll": "i will", "you'll": "you will", "we'll": "we will", "they'll": "they will", "she'll": "she will", "he'll": "he will", "haven't": "have not", "hasn't": "has not", "mustn't": "must not", "shouldn't": "should not", "let's": "let us", "i've": "i have" };
 function norm(s) {
@@ -1122,7 +1123,49 @@ const HEART_MAX = 5, HEART_MS = 30 * 60 * 1000;
 const INTERVALS = [0, 1, 2, 4, 8, 16];
 let DB = loadDB();
 function loadDB() { try { const d = JSON.parse(localStorage.getItem(KEY)); if (d && Array.isArray(d.profiles)) return d; } catch (e) { } return { v: 1, profiles: [], current: null }; }
-function save() { try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) { } }
+function save() { DB.updated = Date.now(); try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) { } cloudQueue(); }
+
+/* ---------- المزامنة عبر الحساب (عند الفتح من رابط claude.ai) ----------
+   كل مستخدم مسجّل يحصل على نسخة خاصة به (data/users/<id>) لا يراها غيره.
+   تُرفع التغييرات تلقائياً وتُسحب على أي جهاز آخر يفتح الرابط بالحساب نفسه. */
+const DEVICE = (() => { try { let d = localStorage.getItem('lisan.device'); if (!d) { d = 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); localStorage.setItem('lisan.device', d); } return d; } catch (e) { return 'd0'; } })();
+const CLOUD = { ref: null, on: false, timer: null, writing: false, again: false, pending: null };
+let SCREEN = 'boot';
+const packDB = () => { const { current, ...rest } = DB; return JSON.stringify(rest); };
+const saveLocal = () => { try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) { } };
+function cloudQueue() { if (!CLOUD.on) return; clearTimeout(CLOUD.timer); CLOUD.timer = setTimeout(cloudPush, 1500); }
+async function cloudPush() {
+  if (!CLOUD.on) return; if (CLOUD.writing) { CLOUD.again = true; return; }
+  CLOUD.writing = true;
+  try { await CLOUD.ref.set({ json: packDB(), updated: DB.updated || Date.now(), device: DEVICE }); } catch (e) { }
+  CLOUD.writing = false; if (CLOUD.again) { CLOUD.again = false; cloudPush(); }
+}
+function cloudApply(d) {
+  try { const remote = JSON.parse(d.json); if (!remote || !Array.isArray(remote.profiles)) return;
+    const cur = DB.current; remote.profiles.forEach(fixProfile); DB = remote; DB.updated = d.updated;
+    DB.current = DB.profiles.some(p => p.id === cur) ? cur : null; saveLocal();
+  } catch (e) { }
+}
+function cloudIncoming(d) {
+  if (!d || !d.json || !(d.updated > (DB.updated || 0))) return;
+  if (SCREEN === 'home' || SCREEN === 'profiles') { const sc = SCREEN; cloudApply(d); go(sc); toast('☁️ تم تحديث تقدّمك من جهاز آخر'); }
+  else CLOUD.pending = d;
+}
+async function cloudInit() {
+  if (!IN_CLAUDE) return;
+  try {
+    const [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]);
+    if (!db || !user) return; const id = await user.id(); if (!id) return;
+    CLOUD.ref = db.doc('data/users/' + id + '/lisan');
+    const snap = await CLOUD.ref.get(); const d = snap.exists ? snap.data() : null;
+    CLOUD.on = true;
+    if (d && d.json && (d.updated || 0) > (DB.updated || 0)) { cloudApply(d); }
+    else if (DB.profiles.length && (!d || (DB.updated || 0) > (d.updated || 0))) cloudPush();
+    CLOUD.ref.onSnapshot(s2 => { const x = s2.exists ? s2.data() : null; if (x && x.device !== DEVICE) cloudIncoming(x); }, () => { });
+    if (SCREEN === 'home' || SCREEN === 'profiles') go(SCREEN);
+  } catch (e) { CLOUD.on = false; }
+}
+const syncLine = () => CLOUD.on ? '☁️ متزامن مع حسابك: افتح الرابط نفسه من أي جهاز' : 'كل البيانات محفوظة على هذا الجهاز فقط · بلا حسابات وبلا اشتراكات';
 function P() { return DB.profiles.find(p => p.id === DB.current) || null; }
 function newProfile(name, avatar, goal) {
   return { id: 'p' + Date.now().toString(36) + rnd(1e4), name, avatar, goal, lang: 'en', xp: 0, streak: 0, lastDay: null, xpLog: {},
@@ -1201,7 +1244,7 @@ function say(text, slow) {
     const p = P(); u.rate = slow ? 0.55 : (p ? p.settings.rate : 0.9); synth.speak(u); } catch (e) { }
 }
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition || null;
-function micOK() { const p = P(); return !!SR && (!p || p.settings.mic); }
+function micOK() { const p = P(); return !!SR && !IN_CLAUDE && (!p || p.settings.mic); }
 function listen(cb) {
   if (!SR) return cb(null, 'unsupported');
   let done = false; const r = new SR(); r.lang = C.voice; r.interimResults = false; r.maxAlternatives = 4;
@@ -1238,7 +1281,7 @@ function confirmBox(msg, yes, yesTxt = 'نعم') {
 }
 function bindSay(root) { $$('[data-say]', root).forEach(b => b.onclick = e => { e.stopPropagation(); say(b.dataset.say, b.dataset.slow === '1'); }); }
 const spkBtn = (t, cls = '') => `<button class="spk ${cls}" data-say="${esc(t)}" aria-label="استمع">🔊</button>`;
-function applyTheme() { const p = P(); const th = p ? p.settings.theme : 'auto'; if (th === 'auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = th; }
+function applyTheme() { const p = P(); const th = p ? p.settings.theme : 'auto'; if (th === 'auto') { if (VIEWER_THEME) document.documentElement.dataset.theme = VIEWER_THEME; else delete document.documentElement.dataset.theme; } else document.documentElement.dataset.theme = th; }
 let onKey = null;
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter') { const c = $('#chk'); if (c && !c.disabled && document.activeElement !== c) { e.preventDefault(); c.click(); } return; }
@@ -1247,10 +1290,12 @@ document.addEventListener('keydown', e => {
   }
   onKey && onKey(e);
 });
-function leave() { onKey = null; try { synth && synth.cancel(); } catch (e) { } window.scrollTo(0, 0); }
+function leave() { SCREEN = 'busy'; onKey = null; try { synth && synth.cancel(); } catch (e) { } window.scrollTo(0, 0); }
 
 /* ---------------- توليد التمارين ---------------- */
-function distract(correct, pool, n) { const c = norm(correct); return shuffle([...new Set(pool)].filter(x => norm(x) !== c)).slice(0, n); }
+const okey = s => /[a-z]/i.test(s) ? norm(s) : String(s).trim();
+function distract(correct, pool, n) { const c = okey(correct); const seen = new Set([c]); const out = [];
+  for (const x of shuffle(pool)) { const k = okey(x); if (!seen.has(k)) { seen.add(k); out.push(x); if (out.length >= n) break; } } return out; }
 function unitVocab(L) { return ALLV.filter(v => v.ui === L.ui).map(v => [v.en, v.ar]); }
 function exMcArEn(v, L) {
   const pool = L ? L.vocab.map(x => x[0]).concat(unitVocab(L).map(x => x[0])) : ALLV.map(x => x.en);
@@ -1508,7 +1553,7 @@ function startLesson(L) {
 function lessonDone(L, s) {
   const p = P(); const first = !p.done[L.id]; const before = todayXP(p);
   p.done[L.id] = (p.done[L.id] || 0) + 1; p.stats.lessons++; if (s.acc === 100) p.stats.perfect++;
-  const xp = 10 + (s.acc === 100 ? 5 : 0) + (first ? 5 : 0); addXP(p, xp); L.vocab.forEach(v => srsAdd(p, v[0]));
+  const xp = 10 + (s.acc === 100 ? 5 : 0) + (first ? 5 : 0); addXP(p, xp); refreshHearts(p); if (s.acc >= 90 && p.hearts < HEART_MAX) p.hearts++; L.vocab.forEach(v => srsAdd(p, v[0]));
   const badges = checkBadges(p); save();
   const unitDone = first && LESSONS.filter(l => l.ui === L.ui).every(l => p.done[l.id]);
   resultScreen({ icon: unitDone ? '🏅' : s.acc === 100 ? '🌟' : '🎉', title: unitDone ? 'أنهيت الوحدة كاملة!' : 'أتممت الدرس!', sub: `${esc(L.ta)} · ${L.vocab.length} كلمات جديدة أضيفت للمراجعة`, xp, acc: s.acc, secs: s.secs, badges, goalBefore: before });
@@ -1632,13 +1677,13 @@ const AVATARS = ['🦊', '🐼', '🦁', '🐯', '🐨', '🐸', '🐵', '🐬',
 const GOALS = [[15, 'خفيف', 'درس واحد تقريباً · 5 دقائق'], [30, 'منتظم', 'درسان · 10 دقائق'], [50, 'جاد', '3 دروس · 15 دقيقة'], [80, 'مكثّف', '5 دروس · 25 دقيقة']];
 
 function scrProfiles() {
-  leave(); DB.current = null; save(); applyTheme();
+  leave(); SCREEN = 'profiles'; DB.current = null; saveLocal(); applyTheme();
   app.innerHTML = `<div class="prof-scr"><div class="logo"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiMxNEMwOEYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwQTdBNjEiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMiIgZmlsbD0idXJsKCNnKSIvPgogIDxwYXRoIGQ9Ik0xMjAgMTUwYzAtMjggMjItNTAgNTAtNTBoMTcyYzI4IDAgNTAgMjIgNTAgNTB2MTMyYzAgMjgtMjIgNTAtNTAgNTBIMjUwbC03NCA2NHYtNjRoLTZjLTI4IDAtNTAtMjItNTAtNTB6IiBmaWxsPSIjZmZmIi8+CiAgPHBhdGggZD0iTTMwMCAxNTB2MTE4YzAgMzQtMjggNTItNjIgNTJzLTYwLTE4LTYwLTUwIiBmaWxsPSJub25lIiBzdHJva2U9IiMwRTlGN0UiIHN0cm9rZS13aWR0aD0iMzQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxjaXJjbGUgY3g9IjM2OCIgY3k9IjEyOCIgcj0iMzAiIGZpbGw9IiNGRkIwMjAiLz4KPC9zdmc+Cg==" alt="" onerror="this.remove()">لِسان</div><p class="tagline">تعلّم الإنجليزية خطوة بخطوة، دقائق كل يوم.</p>
     <h2 style="margin-bottom:16px">من يتعلّم الآن؟</h2>
     <div class="prof-grid">${DB.profiles.map(p => `<button class="prof" data-id="${p.id}"><span class="av">${p.avatar}</span><b>${esc(p.name)}</b><small>${levelLabel(p)} · 🔥 ${streakNow(p)} · ⭐ ${p.xp}</small></button>`).join('')}
     <button class="prof add" data-add><span class="av">＋</span>إضافة فرد</button></div>
-    <p class="muted" style="font-size:13px">كل البيانات محفوظة على هذا الجهاز فقط · بلا حسابات وبلا اشتراكات</p></div>`;
-  $$('[data-id]').forEach(b => b.onclick = () => { DB.current = b.dataset.id; save(); go('home'); });
+    <p class="muted" style="font-size:13px">${syncLine()}</p></div>`;
+  $$('[data-id]').forEach(b => b.onclick = () => { DB.current = b.dataset.id; saveLocal(); go('home'); });
   $('[data-add]').onclick = scrNewProfile;
 }
 function scrNewProfile() {
@@ -1671,7 +1716,7 @@ function scrNewProfile() {
 
 let TAB = 'path';
 function scrHome(tab) {
-  leave(); const p = P(); if (!p) return go('profiles'); if (tab) TAB = tab; refreshHearts(p); save(); applyTheme();
+  leave(); SCREEN = 'home'; const p = P(); if (!p) return go('profiles'); if (tab) TAB = tab; refreshHearts(p); save(); applyTheme();
   const s = streakNow(p);
   app.innerHTML = `<div class="home"><div class="topbar">
       <button class="lvl-chip" data-sw aria-label="تبديل الملف">${p.avatar} <span class="en">${levelLabel(p)}</span></button>
@@ -1756,13 +1801,14 @@ function tabMe(p, el) {
     <h3 class="sec-h">الإعدادات</h3><div class="card">
       <div class="set-row"><span><b>الهدف اليومي</b><small>${p.goal} XP</small></span><div class="seg">${GOALS.map(g => `<button class="${p.goal === g[0] ? 'on' : ''}" data-goal="${g[0]}">${g[1]}</button>`).join('')}</div></div>
       <div class="set-row"><span><b>قلوب غير محدودة</b><small>مناسب للأطفال والمبتدئين جداً</small></span><button class="sw ${p.settings.unlimited ? 'on' : ''}" data-tg="unlimited" aria-label="قلوب غير محدودة"></button></div>
-      <div class="set-row"><span><b>تمارين النطق بالميكروفون</b><small>${SR ? 'مدعوم في هذا المتصفح' : 'غير مدعوم في هذا المتصفح'}</small></span><button class="sw ${p.settings.mic ? 'on' : ''}" data-tg="mic" aria-label="الميكروفون"></button></div>
+      <div class="set-row"><span><b>تمارين النطق بالميكروفون</b><small>${IN_CLAUDE ? 'متاح في نسخة الملف، وغير متاح داخل رابط claude.ai' : SR ? 'مدعوم في هذا المتصفح' : 'غير مدعوم في هذا المتصفح'}</small></span><button class="sw ${p.settings.mic ? 'on' : ''}" data-tg="mic" aria-label="الميكروفون"></button></div>
       <div class="set-row"><span><b>المؤثرات الصوتية</b><small>أصوات الإجابة الصحيحة والخاطئة</small></span><button class="sw ${p.settings.sfx ? 'on' : ''}" data-tg="sfx" aria-label="المؤثرات"></button></div>
       <div class="set-row"><span><b>سرعة النطق</b><small>صوت القارئ الإنجليزي</small></span><div class="seg">${[[0.7, 'بطيء'], [0.9, 'عادي'], [1.05, 'سريع']].map(r => `<button class="${p.settings.rate === r[0] ? 'on' : ''}" data-rate="${r[0]}">${r[1]}</button>`).join('')}</div></div>
       <div class="set-row"><span><b>المظهر</b></span><div class="seg">${[['auto', 'تلقائي'], ['light', 'فاتح'], ['dark', 'داكن']].map(r => `<button class="${p.settings.theme === r[0] ? 'on' : ''}" data-th="${r[0]}">${r[1]}</button>`).join('')}</div></div>
       <div class="set-row"><span><b>اختبار المستوى</b><small>${p.placement ? 'آخر نتيجة: ' + p.placement.level : 'لم يُجرَ بعد'}</small></span><button class="btn ghost sm" data-pl>${p.placement ? 'إعادة' : 'ابدأ'}</button></div>
     </div>
     <h3 class="sec-h">البيانات والعائلة</h3><div class="card">
+      <div class="set-row"><span><b>${CLOUD.on ? '☁️ المزامنة مفعّلة' : '💾 حفظ محلي'}</b><small>${CLOUD.on ? 'تقدّم العائلة محفوظ في حسابك ويظهر على أي جهاز تفتح منه الرابط' : 'للعمل على أكثر من جهاز: افتح التطبيق من رابط claude.ai، أو انقل النسخة الاحتياطية'}</small></span></div>
       <div class="set-row"><span><b>تبديل الملف</b><small>${DB.profiles.length} ملف على هذا الجهاز</small></span><button class="btn ghost sm" data-sw>تبديل</button></div>
       <div class="set-row"><span><b>نسخة احتياطية</b><small>احفظ تقدّم العائلة كاملاً في ملف</small></span><button class="btn ghost sm" data-ex>تصدير</button></div>
       <div class="set-row"><span><b>استعادة / نقل لجهاز آخر</b><small>من ملف نسخة احتياطية</small></span><button class="btn ghost sm" data-im>استيراد</button></div>
@@ -1783,7 +1829,12 @@ function tabMe(p, el) {
     $('[data-sv]', s).onclick = () => { const n = $('#rn', s).value.trim(); if (n) p.name = n; p.avatar = av; close(); rer(); };
   });
 }
-function exportData() {
+async function exportData() {
+  if (IN_CLAUDE) {
+    const json = JSON.stringify({ app: 'lisan', v: 1, exported: new Date().toISOString(), data: DB }, null, 1);
+    try { const dl = await window.claude.use('downloads'); if (dl) { await dl.save({ filename: `lisan-backup-${today()}.json`, data: json }); toast('✅ تم حفظ النسخة الاحتياطية'); return; } } catch (e) { return; }
+    return toast(CLOUD.on ? 'تقدّمك محفوظ تلقائياً في حسابك' : 'التصدير غير متاح هنا');
+  }
   const blob = new Blob([JSON.stringify({ app: 'lisan', v: 1, exported: new Date().toISOString(), data: DB }, null, 1)], { type: 'application/json' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `lisan-backup-${today()}.json`; document.body.appendChild(a); a.click();
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); toast('✅ تم حفظ النسخة الاحتياطية');
@@ -1800,6 +1851,7 @@ function importData() {
 
 /* ---------------- الموجّه ---------------- */
 function go(scr, arg) {
+  if (CLOUD.pending) { const d = CLOUD.pending; CLOUD.pending = null; if (d.updated > (DB.updated || 0)) cloudApply(d); }
   if (scr === 'profiles') return scrProfiles();
   if (scr === 'home') return P() ? scrHome(arg) : scrProfiles();
 }
@@ -1807,7 +1859,8 @@ window.__lisan = { cur: null, get DB() { return DB; }, LESSONS, go };
 
 applyTheme();
 go(DB.current && P() ? 'home' : 'profiles');
-if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => { });
+cloudInit();
+if (!IN_CLAUDE && 'serviceWorker' in navigator && /^https?:/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => { });
 })();
 
 </script>
