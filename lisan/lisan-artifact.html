@@ -1838,11 +1838,54 @@ function pickVoice() {
   const enUS = vs.filter(v => /^en[-_]US/i.test(v.lang));
   voice = enUS.find(v => /Google|Samantha|Natural|Aria|Jenny|Ava|Allison/i.test(v.name)) || enUS[0] || vs.find(v => /^en/i.test(v.lang)) || null;
 }
-if (synth) { pickVoice(); synth.onvoiceschanged = pickVoice; }
-function say(text, slow) {
-  if (!synth || !text) return;
-  try { synth.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = C.voice; if (voice) u.voice = voice;
-    const p = P(); u.rate = slow ? 0.55 : (p ? p.settings.rate : 0.9); synth.speak(u); } catch (e) { }
+if (synth) { pickVoice(); if (synth.addEventListener) synth.addEventListener('voiceschanged', pickVoice); else synth.onvoiceschanged = pickVoice; }
+/* إصلاح الصوت:
+   1) لا نوقف الصوت السابق إلا إذا كان يعمل فعلاً، لأن الإيقاف ثم التشغيل الفوري يُسكت الصوت في كروم وسامسونج.
+   2) نستأنف المحرك إن كان متوقفاً (خلل معروف في كروم).
+   3) نفتح محرك الصوت في الآيفون بأول لمسة للمستخدم.
+   4) إن لم يبدأ الصوت خلال ثانيتين ونصف، نعرض للمستخدم سبب المشكلة وحلها. */
+let ttsUnlocked = false, ttsWarned = false, ttsOK = null;
+function unlockTTS() { if (ttsUnlocked || !synth) return; ttsUnlocked = true; try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; u.lang = C.voice; synth.speak(u); } catch (e) { } }
+document.addEventListener('pointerdown', unlockTTS, true);
+function ttsTrouble(why) {
+  ttsOK = false; if (ttsWarned) return; ttsWarned = true;
+  toast(why === 'unsupported' ? '🔇 هذا المتصفح لا يدعم القراءة الصوتية' : '🔇 لا يصدر صوت؟ افتح «ملفي» ثم «اختبار الصوت» لمعرفة الحل');
+}
+function say(text, slow, onFail) {
+  if (!text) return;
+  if (!synth || !window.SpeechSynthesisUtterance) { ttsTrouble('unsupported'); onFail && onFail('unsupported'); return; }
+  try {
+    if (!voice) pickVoice();
+    if (synth.speaking || synth.pending) synth.cancel();
+    if (synth.paused) synth.resume();
+    const u = new SpeechSynthesisUtterance(text); u.lang = C.voice; if (voice) u.voice = voice;
+    const p = P(); u.rate = slow ? 0.55 : (p ? p.settings.rate : 0.9); u.volume = 1;
+    let started = false;
+    u.onstart = () => { started = true; ttsOK = true; };
+    u.onerror = e => { if (e.error !== 'interrupted' && e.error !== 'canceled') { ttsTrouble(e.error); onFail && onFail(e.error); } };
+    synth.speak(u);
+    setTimeout(() => { if (!started && !synth.speaking && ttsOK !== true) { ttsTrouble('silent'); onFail && onFail('silent'); } }, 2500);
+  } catch (e) { ttsTrouble('error'); onFail && onFail('error'); }
+}
+/* شاشة اختبار الصوت مع الحلول حسب الجهاز */
+function soundCheck() {
+  const vs = synth ? synth.getVoices() : []; const enVoices = vs.filter(v => /^en/i.test(v.lang));
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  sheet(`<h3>🔊 اختبار الصوت</h3><p class="muted">اضغط الزر، ويجب أن تسمع جملة إنجليزية.</p>
+    <button class="btn acc" data-test>▶️ تشغيل جملة تجريبية</button><div class="snd-res" style="min-height:26px;margin:10px 0;font-weight:700"></div>
+    <div class="card" style="text-align:start"><b>إذا لم تسمع شيئاً:</b>
+      ${isIOS ? `<p style="margin:6px 0 0">1. <b>زر الصامت</b> على جانب الآيفون: حرّكه حتى يختفي اللون البرتقالي. الآيفون يكتم صوت القارئ في الوضع الصامت.</p><p style="margin:6px 0 0">2. ارفع الصوت من الأزرار الجانبية أثناء التشغيل.</p><p style="margin:6px 0 0">3. أغلق سفاري تماماً ثم افتحه من جديد.</p>`
+      : isAndroid ? `<p style="margin:6px 0 0">1. ارفع <b>صوت الوسائط</b> (وليس صوت الرنين) من الأزرار الجانبية.</p><p style="margin:6px 0 0">2. افتح <b>الإعدادات</b>، ثم <b>الإدارة العامة</b>، ثم <b>تحويل النص إلى كلام</b>. اختر محرك جوجل، وتأكد من تنزيل اللغة الإنجليزية.</p><p style="margin:6px 0 0">3. استخدم متصفح كروم.</p>`
+      : `<p style="margin:6px 0 0">1. تأكد أن صوت الجهاز غير مكتوم.</p><p style="margin:6px 0 0">2. استخدم متصفح كروم أو إيدج أو سفاري.</p>`}
+      <p class="muted" style="margin:10px 0 0;font-size:13px">أصوات إنجليزية متوفرة على جهازك: <b class="en">${enVoices.length}</b>${voice ? ` · المستخدم: <span class="en">${esc(voice.name)}</span>` : ''}</p></div>`, s => {
+    const res = $('.snd-res', s);
+    $('[data-test]', s).onclick = () => {
+      res.textContent = '⏳ جارٍ التشغيل…'; res.style.color = 'var(--muted)'; ttsOK = null;
+      say('Hello! If you can hear me, the sound is working.', false, () => { res.textContent = '❌ لم يبدأ الصوت. جرّب الحلول أدناه.'; res.style.color = 'var(--bad)'; });
+      setTimeout(() => { if (ttsOK) { res.textContent = '✅ الصوت يعمل'; res.style.color = 'var(--pri)'; } }, 1500);
+    };
+  });
 }
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition || null;
 function micOK() { const p = P(); return !!SR && !IN_CLAUDE && (!p || p.settings.mic); }
@@ -2767,6 +2810,7 @@ function tabMe(p, el) {
       <div class="set-row"><span><b>رقم سري لحسابي</b><small>${p.pin ? 'مقفل برقم سري' : 'اختياري: يمنع غيرك من فتح حسابك'}</small></span><button class="btn ghost sm" data-mypin>${p.pin ? 'إزالة' : 'تعيين'}</button></div>
       <div class="set-row"><span><b>أسئلة بمؤقت</b><small>سؤالان بمؤقت 15 ثانية في كل درس</small></span><button class="sw ${p.settings.timer ? 'on' : ''}" data-tg="timer" aria-label="المؤقت"></button></div>
       <div class="set-row"><span><b>المؤثرات الصوتية</b><small>أصوات الإجابة الصحيحة والخاطئة</small></span><button class="sw ${p.settings.sfx ? 'on' : ''}" data-tg="sfx" aria-label="المؤثرات"></button></div>
+      <div class="set-row"><span><b>🔊 اختبار الصوت</b><small>إذا لم تسمع صوت القارئ، اضغط هنا لمعرفة السبب والحل</small></span><button class="btn ghost sm" data-snd>اختبار</button></div>
       <div class="set-row"><span><b>سرعة النطق</b><small>صوت القارئ الإنجليزي</small></span><div class="seg">${[[0.7, 'بطيء'], [0.9, 'عادي'], [1.05, 'سريع']].map(r => `<button class="${p.settings.rate === r[0] ? 'on' : ''}" data-rate="${r[0]}">${r[1]}</button>`).join('')}</div></div>
       <div class="set-row"><span><b>المظهر</b></span><div class="seg">${[['auto', 'تلقائي'], ['light', 'فاتح'], ['dark', 'داكن']].map(r => `<button class="${p.settings.theme === r[0] ? 'on' : ''}" data-th="${r[0]}">${r[1]}</button>`).join('')}</div></div>
       <div class="set-row"><span><b>المستوى</b><small>${p.placement ? (p.placement.manual ? 'اخترته بنفسك: ' : 'نتيجة الاختبار: ') + `<span class="en">${p.placement.level}</span>` : 'لم يُحدَّد بعد'}</small></span><span style="display:flex;gap:6px"><button class="btn ghost sm" data-lvl>اختيار</button><button class="btn ghost sm" data-pl>اختبار</button></span></div>
@@ -2778,7 +2822,7 @@ function tabMe(p, el) {
       <div class="set-row"><span><b>نسخة احتياطية للجهاز</b><small>كل الحسابات على هذا الجهاز في ملف واحد</small></span><button class="btn ghost sm" data-ex>تصدير</button></div>
       <div class="set-row"><span><b>استيراد</b><small>حساب منقول أو نسخة احتياطية</small></span><button class="btn ghost sm" data-im>استيراد</button></div>
       <div class="set-row"><span><b style="color:var(--bad)">حذف هذا الحساب</b><small>لا يمكن التراجع</small></span><button class="btn ghost sm" data-del style="color:var(--bad)">حذف</button></div>
-    </div><p class="muted" style="text-align:center;font-size:12px;margin-top:20px">لِسان · الإصدار <span class="en">2.1</span> · يعمل دون إنترنت بعد التثبيت</p>`;
+    </div><p class="muted" style="text-align:center;font-size:12px;margin-top:20px">لِسان · الإصدار <span class="en">2.2</span> · يعمل دون إنترنت بعد التثبيت</p>`;
   const rer = () => { save(); applyTheme(); scrHome(); };
   $$('[data-goal]', el).forEach(b => b.onclick = () => { p.goal = +b.dataset.goal; rer(); });
   $$('[data-tg]', el).forEach(b => b.onclick = () => { const k = b.dataset.tg; p.settings[k] = !p.settings[k]; rer(); });
@@ -2789,6 +2833,7 @@ function tabMe(p, el) {
   $('[data-ex]', el).onclick = exportData;
   $('[data-im]', el).onclick = () => parentGate(importAccount);
   $('[data-mv]', el).onclick = () => exportAccount(p);
+  $('[data-snd]', el).onclick = soundCheck;
   $('[data-lvl]', el).onclick = () => chooseLevel(() => scrHome());
   $('[data-mist]', el).onclick = () => { const m = (p.mistakes || []).slice().reverse(); if (!m.length) return toast('لا أخطاء محفوظة بعد 👍'); reviewAnswers(m.map(x => Object.assign({ ok: false }, x)), 'سجل أخطائي', () => scrHome()); };
   const ownGate = fn => p.pin ? pinPad('أكّد برقمك السري', v => { if (hashPin(v) !== p.pin) return false; fn(); }) : fn();
