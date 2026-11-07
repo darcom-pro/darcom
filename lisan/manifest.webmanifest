@@ -1,0 +1,19 @@
+{
+  "name": "لِسان — تعلّم الإنجليزية",
+  "short_name": "لِسان",
+  "description": "تعلّم الإنجليزية للناطقين بالعربية: دروس تفاعلية، مراجعة ذكية، ومحادثات.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F4F7F6",
+  "theme_color": "#0E9F7E",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
