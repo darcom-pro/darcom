@@ -355,3 +355,22 @@ h1,h2,h3{margin:0;line-height:1.35}
   .stat{padding:6px 6px;font-size:15px}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ===== الإصدار 2 ===== */
+.stat.brain{color:var(--t-q)}.stat.brain.off{color:var(--muted);filter:grayscale(1)}
+textarea.write-inp{resize:none;font-size:20px;line-height:1.5;font-family:"Nunito","Segoe UI",system-ui,sans-serif}
+.w-ok{color:var(--pri);font-weight:800}
+.w-bad{color:var(--bad);font-weight:800;text-decoration:underline wavy;text-underline-offset:4px}
+.word-score{font-size:22px;line-height:1.8;font-family:"Nunito",sans-serif;text-align:center}
+.node.test{border-radius:22px;font-size:32px}
+.node.test.done{background:var(--gold)}
+.u-locked .uhead{filter:saturate(.35);opacity:.85}
+.pin-dots{display:flex;gap:14px;justify-content:center;margin:16px 0 6px}
+.pin-dots i{width:16px;height:16px;border-radius:50%;border:2px solid var(--muted)}
+.pin-dots i.on{background:var(--pri);border-color:var(--pri)}
+.pin-dots.shake{animation:shake .35s}
+.pin-msg{min-height:22px;color:var(--bad);font-size:14px;font-weight:600}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:280px;margin:10px auto 0}
+.pin-pad button{height:58px;border-radius:16px;background:var(--soft);font-size:24px;font-weight:800;font-family:"Nunito",sans-serif;border:2px solid var(--line)}
+.pin-pad button:active{transform:translateY(2px)}
+.goal-card .btn.sm{flex:none}

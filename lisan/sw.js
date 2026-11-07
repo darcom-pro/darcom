@@ -1,6 +1,6 @@
 /* لِسان — عامل الخدمة: يجعل التطبيق يعمل دون إنترنت بعد أول زيارة */
-const CACHE = 'lisan-v1';
-const ASSETS = ['./', './index.html', './styles.css', './app.js', './course-en.js', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png'];
+const CACHE = 'lisan-v2';
+const ASSETS = ['./', './index.html', './styles.css', './app.js', './course-en.js', './store.js', './fsrs.js', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', e => {

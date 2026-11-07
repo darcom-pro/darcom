@@ -1,7 +1,8 @@
 /* =========================================================
    لسان — محرك التطبيق
-   يعمل بالكامل على الجهاز: لا خوادم، لا حسابات، لا اشتراكات.
-   التخزين: localStorage على الجهاز نفسه (مع تصدير/استيراد احتياطي).
+   يعمل بالكامل على الجهاز دون إنترنت، بلا اشتراكات.
+   التخزين: IndexedDB (store.js) + نسخة احتياطية في localStorage.
+   المراجعة: FSRS (fsrs.js). سجل الأحداث = طابور المزامنة القادمة.
    ========================================================= */
 (function () {
 'use strict';
@@ -39,24 +40,38 @@ function wordSim(a, b) { // تشابه على مستوى الكلمات (LCS)
   return (2 * dp[x.length][y.length]) / (x.length + y.length);
 }
 const tok = s => s.replace(/[.,!?]/g, '').split(/\s+/).filter(Boolean);
+/* مقارنة مرنة: تقبل أي صياغة صحيحة من القائمة، مع خطأ إملائي بسيط */
+function matchAny(input, accepted) {
+  const a = norm(input); if (!a) return { ok: false };
+  for (const x of accepted) if (norm(x) === a) return { ok: true, exact: true, hit: x };
+  for (const x of accepted) { const b = norm(x); const tol = b.length > 24 ? 3 : b.length > 10 ? 2 : b.length >= 4 ? 1 : 0; if (lev(a, b) <= tol) return { ok: true, exact: false, hit: x }; }
+  return { ok: false };
+}
+const fmtDate = ms => { const d = new Date(ms); return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`; };
+const hashPin = pin => { let h = 2166136261; for (const c of 'lisan:' + pin) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return (h >>> 0).toString(16); };
 
 /* ---------------- المنهج ---------------- */
 const C = window.LISAN_COURSES.en;
 const LESSONS = [];
 C.units.forEach((u, ui) => u.lessons.forEach((l, li) => { l.id = `u${ui + 1}l${li + 1}`; l.ui = ui; l.li = li; l.gi = LESSONS.length; LESSONS.push(l); }));
 const UNIT_START = C.units.map((u, ui) => LESSONS.findIndex(l => l.ui === ui));
+const UNIT_LESSONS = C.units.map((u, ui) => LESSONS.filter(l => l.ui === ui));
+const NU = C.units.length;
 const ALLV = LESSONS.flatMap(l => l.vocab.map(v => ({ en: v[0], ar: v[1], lid: l.id, ui: l.ui })));
 const VMAP = {}; ALLV.forEach(v => { if (!VMAP[v.en]) VMAP[v.en] = v; });
+const SMAP = {}, BMAP = {}; // للمراجعة: الجمل والفراغات التي أخطأ فيها المتعلم
+LESSONS.forEach(l => { l.sentences.forEach(s => { SMAP[s[0]] = { s, L: l }; }); l.blanks.forEach(b => { BMAP[b[0]] = { b, L: l }; }); });
 const ALLWORDS = [...new Set(LESSONS.flatMap(l => l.sentences.flatMap(s => tok(s[0]))))];
 const TAGS = { s: 'الفاعل', v: 'الفعل', x: 'فعل مساعد / أداة', o: 'التكملة / المفعول', t: 'زمان / تكرار / شرط', q: 'أداة سؤال', p: 'حرف جر / مكان' };
 
 /* ---------------- التخزين ---------------- */
 const KEY = 'lisan.v1';
-const HEART_MAX = 5, HEART_MS = 30 * 60 * 1000;
-const INTERVALS = [0, 1, 2, 4, 8, 16];
+const Store = window.LisanStore, FS = window.FSRS;
 let DB = loadDB();
-function loadDB() { try { const d = JSON.parse(localStorage.getItem(KEY)); if (d && Array.isArray(d.profiles)) return d; } catch (e) { } return { v: 1, profiles: [], current: null }; }
-function save() { DB.updated = Date.now(); try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) { } cloudQueue(); }
+function loadDB() { try { const d = JSON.parse(localStorage.getItem(KEY)); if (d && Array.isArray(d.profiles)) return d; } catch (e) { } return { v: 2, profiles: [], current: null, family: null }; }
+function save() { DB.updated = Date.now(); try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) { } Store.saveState(DB); cloudQueue(); }
+/* سجل الأحداث: كل نشاط تعليمي يُسجَّل بمعرّف فريد (أساس التقارير والمزامنة) */
+function logEv(type, data) { const p = P(); Store.addEvent(Object.assign({ type, lid: p ? p.id : null, t: Date.now(), day: today() }, data || {})); }
 
 /* ---------- المزامنة عبر الحساب (عند الفتح من رابط claude.ai) ----------
    كل مستخدم مسجّل يحصل على نسخة خاصة به (data/users/<id>) لا يراها غيره.
@@ -75,7 +90,7 @@ async function cloudPush() {
 }
 function cloudApply(d) {
   try { const remote = JSON.parse(d.json); if (!remote || !Array.isArray(remote.profiles)) return;
-    const cur = DB.current; remote.profiles.forEach(fixProfile); DB = remote; DB.updated = d.updated;
+    const cur = DB.current; DB = remote; fixDB(); DB.updated = d.updated;
     DB.current = DB.profiles.some(p => p.id === cur) ? cur : null; saveLocal();
   } catch (e) { }
 }
@@ -102,17 +117,29 @@ const syncLine = () => CLOUD.on ? '☁️ متزامن مع حسابك: افتح
 function P() { return DB.profiles.find(p => p.id === DB.current) || null; }
 function newProfile(name, avatar, goal) {
   return { id: 'p' + Date.now().toString(36) + rnd(1e4), name, avatar, goal, lang: 'en', xp: 0, streak: 0, lastDay: null, xpLog: {},
-    hearts: HEART_MAX, heartsTs: Date.now(), placement: null, startIndex: 0, done: {}, convos: {}, srs: {}, badges: [],
-    stats: { lessons: 0, perfect: 0, reviews: 0, talks: 0 }, settings: { unlimited: false, rate: 0.9, mic: true, sfx: true, theme: 'auto' }, created: Date.now() };
+    pin: null, placement: null, startUnit: 0, passed: {}, tests: [], done: {}, convos: {}, srs: {}, badges: [],
+    stats: { lessons: 0, perfect: 0, reviews: 0, talks: 0, tests: 0 }, settings: { rate: 0.9, mic: true, sfx: true, theme: 'auto' }, created: Date.now() };
 }
-function fixProfile(p) { // ترقية آمنة لملفات قديمة
+function fixProfile(p) { // ترقية آمنة لملفات الإصدار السابق دون فقدان أي تقدّم
   const base = newProfile(p.name || 'متعلّم', p.avatar || '🦊', p.goal || 30);
   for (const k in base) if (p[k] === undefined) p[k] = base[k];
   for (const k in base.settings) if (p.settings[k] === undefined) p.settings[k] = base.settings[k];
   for (const k in base.stats) if (p.stats[k] === undefined) p.stats[k] = base.stats[k];
+  if (p.startIndex !== undefined) { // نظام الفتح في الإصدار 1 (كل وحدة 4 دروس) ← نظام الوحدات
+    const si = p.startIndex; p.startUnit = Math.max(p.startUnit || 0, Math.min(NU, Math.floor(si / 4))); delete p.startIndex;
+    const NEW_V2 = ['u1l5']; // دروس أضيفت في الإصدار 2 لا تُحسب ضد المتعلم القديم
+    const maxU = Math.max(-1, ...Object.keys(p.done).map(id => { const L = LESSONS.find(l => l.id === id); return L ? L.ui : -1; }));
+    UNIT_LESSONS.forEach((ls, ui) => {
+      const oldDone = ls.filter(l => !NEW_V2.includes(l.id)).every(l => p.done[l.id]);
+      if ((oldDone || ui < maxU) && !p.passed[ui]) p.passed[ui] = { score: null, day: today(), legacy: 1 };
+    });
+  }
+  for (const k in p.srs) { const c = p.srs[k]; if (c && c.box !== undefined && c.s === undefined) p.srs[k] = FS.fromBox(c.box, c.due); } // صناديق ← FSRS
+  delete p.hearts; delete p.heartsTs; delete p.settings.unlimited;
   return p;
 }
-DB.profiles.forEach(fixProfile);
+function fixDB() { DB.profiles.forEach(fixProfile); if (!DB.family && DB.profiles.length) DB.family = { name: 'عائلتي', pin: null, created: Date.now() }; DB.v = 2; }
+fixDB();
 
 /* ---------------- منطق التقدّم ---------------- */
 function streakNow(p) { if (!p.lastDay) return 0; const t = today(); return (p.lastDay === t || p.lastDay === addDays(t, -1)) ? p.streak : 0; }
@@ -121,26 +148,35 @@ function addXP(p, n) {
   p.xp += n; const t = today(); p.xpLog[t] = (p.xpLog[t] || 0) + n;
   if (p.lastDay !== t) { p.streak = p.lastDay === addDays(t, -1) ? p.streak + 1 : 1; p.lastDay = t; }
 }
-function refreshHearts(p) {
-  if (p.hearts >= HEART_MAX) { p.hearts = HEART_MAX; p.heartsTs = Date.now(); return; }
-  const n = Math.floor((Date.now() - p.heartsTs) / HEART_MS);
-  if (n > 0) { p.hearts = Math.min(HEART_MAX, p.hearts + n); p.heartsTs += n * HEART_MS; if (p.hearts >= HEART_MAX) p.heartsTs = Date.now(); }
+/* فتح الوحدات: الوحدة التالية تُفتح باجتياز اختبار نهاية الوحدة السابقة */
+const unitOpen = (p, u) => u === 0 || u <= p.startUnit || !!p.passed[u - 1];
+const unitSkipped = (p, u) => u < p.startUnit;
+const allLessonsDone = (p, u) => UNIT_LESSONS[u].every(l => p.done[l.id]);
+function lessonOpen(p, L) { if (!unitOpen(p, L.ui)) return false; if (L.li === 0 || unitSkipped(p, L.ui)) return true; return !!p.done[UNIT_LESSONS[L.ui][L.li - 1].id]; }
+function testOpen(p, u) { return unitOpen(p, u) && (allLessonsDone(p, u) || unitSkipped(p, u)); }
+function currentItem(p) {
+  for (let u = 0; u < NU; u++) {
+    if (unitSkipped(p, u)) continue;
+    for (const L of UNIT_LESSONS[u]) if (!p.done[L.id]) return { lesson: L };
+    if (!p.passed[u]) return { test: u };
+  }
+  return null;
 }
-function loseHeart(p) { if (p.hearts >= HEART_MAX) p.heartsTs = Date.now(); p.hearts = Math.max(0, p.hearts - 1); }
-function minsToHeart(p) { return Math.max(1, Math.ceil((HEART_MS - (Date.now() - p.heartsTs)) / 60000)); }
-const isDone = (p, i) => !!p.done[LESSONS[i].id];
-const isUnlocked = (p, i) => i <= p.startIndex || isDone(p, i - 1);
-function currentIndex(p) { for (let i = 0; i < LESSONS.length; i++) { if (i < p.startIndex) continue; if (!isDone(p, i)) return i; } return -1; }
-function nodeState(p, i, cur) { if (isDone(p, i)) return 'done'; if (i < p.startIndex) return 'skip'; if (i === cur) return 'cur'; return isUnlocked(p, i) ? 'open' : 'lock'; }
-function levelLabel(p) { if (!p.placement) { const cur = currentIndex(p); const l = LESSONS[cur < 0 ? LESSONS.length - 1 : cur]; return C.units[l.ui].lvl; } return p.placement.level; }
+function nodeState(p, L, cur) { if (p.done[L.id]) return 'done'; if (unitSkipped(p, L.ui)) return 'skip'; if (cur && cur.lesson === L) return 'cur'; return lessonOpen(p, L) ? 'open' : 'lock'; }
+function testState(p, u, cur) { if (p.passed[u]) return 'done'; if (cur && cur.test === u) return 'cur'; return testOpen(p, u) ? 'open' : 'lock'; }
+function levelLabel(p) { const c = currentItem(p); if (!c) return p.placement ? p.placement.level : C.units[NU - 1].lvl; const u = c.lesson ? c.lesson.ui : c.test; return C.units[u].lvl; }
 
-/* SRS — صناديق لايتنر */
-function srsAdd(p, key) { if (!p.srs[key]) p.srs[key] = { box: 1, due: addDays(today(), 1) }; }
-function srsHit(p, key, ok, mode) {
-  const it = p.srs[key]; if (!it) return;
-  if (ok) { if (mode === 'review') { it.box = Math.min(5, it.box + 1); it.due = addDays(today(), INTERVALS[it.box]); } }
-  else { it.box = 1; it.due = today(); }
+/* المراجعة المتباعدة — FSRS
+   المفاتيح: كلمة («book»)، جملة («S:…»)، فراغ قواعد («B:…»)، زوج نطق («P:…») */
+function srsAdd(p, key) { if (!p.srs[key]) p.srs[key] = FS.create(3, today()); }
+function srsHit(p, key, ok, mode, hard) {
+  const c = p.srs[key];
+  if (!ok) { p.srs[key] = c ? FS.review(c, 1, today()) : FS.create(1, today()); return; } // الخطأ يعود قريباً
+  if (!c) return;
+  if (mode === 'review' || c.due <= today()) p.srs[key] = FS.review(c, hard ? 2 : 3, today());
 }
+const dueKeys = p => { const t = today(); return Object.keys(p.srs).filter(k => p.srs[k].due <= t); };
+const isWordKey = k => !/^[SBP]:/.test(k);
 
 /* الشارات */
 const BADGES = [
@@ -153,11 +189,12 @@ const BADGES = [
   { id: 'x500', i: '🌟', t: '500 نقطة', d: 'اجمع 500 XP', c: p => p.xp >= 500 },
   { id: 'x2000', i: '💎', t: '2000 نقطة', d: 'اجمع 2000 XP', c: p => p.xp >= 2000 },
   { id: 'perfect', i: '🎖️', t: 'بلا أخطاء', d: 'درس بدقة 100%', c: p => p.stats.perfect >= 1 },
-  { id: 'unit', i: '📘', t: 'أنهيت وحدة', d: 'أكمل وحدة كاملة', c: p => C.units.some((u, ui) => LESSONS.filter(l => l.ui === ui).every(l => p.done[l.id])) },
+  { id: 'unit', i: '📘', t: 'أنهيت وحدة', d: 'اجتز اختبار وحدة', c: p => Object.keys(p.passed).length >= 1 },
+  { id: 'ace', i: '🏅', t: 'اختبار كامل', d: 'اختبار وحدة 100%', c: p => (p.tests || []).some(t => t.score === 100) },
   { id: 'talk', i: '💬', t: 'أول محادثة', d: 'أكمل محادثة', c: p => p.stats.talks >= 1 },
   { id: 'talkall', i: '🎙️', t: 'متحدث واثق', d: 'كل المحادثات', c: p => C.convos.every(c => p.convos[c.id]) },
   { id: 'rev5', i: '🧠', t: 'ذاكرة قوية', d: '5 جلسات مراجعة', c: p => p.stats.reviews >= 5 },
-  { id: 'w50', i: '📚', t: '50 كلمة', d: 'تعلّم 50 كلمة', c: p => Object.keys(p.srs).length >= 50 },
+  { id: 'w50', i: '📚', t: '50 كلمة', d: 'تعلّم 50 كلمة', c: p => Object.keys(p.srs).filter(isWordKey).length >= 50 },
   { id: 'all', i: '👑', t: 'أنهيت المنهج', d: 'كل الدروس', c: p => LESSONS.every(l => p.done[l.id]) }
 ];
 function checkBadges(p) { const nw = BADGES.filter(b => !p.badges.includes(b.id) && b.c(p)); nw.forEach(b => p.badges.push(b.id)); return nw; }
@@ -243,28 +280,50 @@ function exListenWord(v) {
 }
 function exFill(b) {
   const m = b[0].match(/^(.*)\{(.+?)\}(.*)$/);
-  return { type: 'fill', pre: m[1], post: m[3], options: shuffle(b[1]), answer: m[2], ar: b[2], why: b[3] || '', full: b[0].replace(/[{}]/g, ''), sayAfter: b[0].replace(/[{}]/g, '') };
+  return { type: 'fill', key: 'B:' + b[0], pre: m[1], post: m[3], options: shuffle(b[1]), answer: m[2], ar: b[2], why: b[3] || '', full: b[0].replace(/[{}]/g, ''), sayAfter: b[0].replace(/[{}]/g, '') };
 }
+const accepted = s => [s[0]].concat(Array.isArray(s[2]) ? s[2] : []);
 function extraWords(words, n) { const low = words.map(w => w.toLowerCase()); return shuffle(ALLWORDS.filter(w => !low.includes(w.toLowerCase()) && w.length < 9)).slice(0, n); }
-function exOrder(s) { const w = tok(s[0]); return { type: 'order', en: s[0], ar: s[1], tiles: shuffle(w.concat(extraWords(w, 2))), answer: w.join(' '), sayAfter: s[0] }; }
-function exListen(s) { const w = tok(s[0]); return { type: 'order', listen: true, en: s[0], ar: s[1], tiles: shuffle(w.concat(extraWords(w, 1))), answer: w.join(' ') }; }
+function exOrder(s) { const w = tok(s[0]); return { type: 'order', key: 'S:' + s[0], en: s[0], ar: s[1], alts: accepted(s), tiles: shuffle(w.concat(extraWords(w, 2))), answer: w.join(' '), sayAfter: s[0] }; }
+function exListen(s) { const w = tok(s[0]); return { type: 'order', key: 'S:' + s[0], listen: true, en: s[0], ar: s[1], alts: [s[0]], tiles: shuffle(w.concat(extraWords(w, 1))), answer: w.join(' ') }; }
 function exTrans(s, L) {
-  const pool = L.sentences.map(x => x[1]).concat(LESSONS.filter(l => l.ui === L.ui).flatMap(l => l.sentences.map(x => x[1])));
+  const pool = L.sentences.map(x => x[1]).concat(UNIT_LESSONS[L.ui].flatMap(l => l.sentences.map(x => x[1])));
   return { type: 'mc', q: 'ما ترجمة هذه الجملة؟', bigEn: s[0], options: shuffle([s[1], ...distract(s[1], pool, 2)]), answer: s[1] };
 }
 function exWrite(v) { return { type: 'write', key: v[0], ar: v[1], answer: v[0], sayAfter: v[0] }; }
+function exDict(s) { return { type: 'dict', key: 'S:' + s[0], en: s[0], ar: s[1], sayAfter: s[0] }; }               // استمع واكتب
+function exTType(s) { return { type: 'ttype', key: 'S:' + s[0], en: s[0], ar: s[1], alts: accepted(s), sayAfter: s[0] }; } // ترجمة مكتوبة حرّة
 function exSpeak(s) { return { type: 'speak', en: s[0], ar: s[1] }; }
+function exPair(pr) { // أزواج النطق المتقاربة: استمع وميّز
+  const target = pick([pr[0], pr[1]]);
+  return { type: 'mc', key: 'P:' + pr[0] + '|' + pr[1], q: 'استمع جيداً: أي كلمة سمعت؟', audio: target, options: shuffle([pr[0], pr[1]]), answer: target, optEn: true, note: `${en(pr[0])} = ${esc(pr[2] || '')} · ${en(pr[1])} = ${esc(pr[3] || '')}` };
+}
 
+/* درس كامل: 16 إلى 20 تمريناً ≈ من 6 إلى 10 دقائق */
 function genLesson(L) {
   const V = shuffle(L.vocab), S = shuffle(L.sentences), B = shuffle(L.blanks);
+  const typed = S.filter(s => Array.isArray(s[2]));
   const rest = [
     exMcArEn(V[0], L), exMcArEn(V[1], L), exMcEnAr(V[2], L),
     ...B.map(exFill),
-    exOrder(S[0]), exOrder(S[1]), exTrans(S[2], L), exListen(S[3]), exWrite(V[3])
+    exOrder(S[0]), exOrder(S[1]), exTrans(S[2], L), exListen(S[3]), exDict(S[4] || S[0]), exWrite(V[3])
   ];
+  if (typed.length) rest.push(exTType(typed.find(s => s !== S[0] && s !== S[1]) || typed[0]));
+  if (L.pairs) shuffle(L.pairs).slice(0, 4).forEach(pr => rest.push(exPair(pr)));
   const out = [{ type: 'match', pairs: V.slice(0, 5) }, ...shuffle(rest)];
-  if (micOK()) out.splice(out.length - 2, 0, exSpeak(S[4]));
+  out.splice(out.length - 2, 0, exSpeak(L.speak ? pick(L.speak) : (S[5] || S[2])));
   return out;
+}
+/* اختبار نهاية الوحدة: أسئلة من كل دروسها، بلا شرح وبلا إعادة */
+function genUnitTest(u) {
+  const out = [];
+  UNIT_LESSONS[u].forEach(L => {
+    const V = shuffle(L.vocab), S = shuffle(L.sentences), B = shuffle(L.blanks);
+    out.push(exFill(B[0]), exMcArEn(V[0], L));
+    out.push(L.pairs ? exPair(pick(L.pairs)) : exOrder(S[0]));
+    if (L.li % 2 === 0) out.push(exDict(S[1])); else out.push(exFill(B[1]));
+  });
+  return shuffle(out).slice(0, 18);
 }
 
 /* ---------------- مُشغّلات التمارين ---------------- */
@@ -308,8 +367,40 @@ R.order = (ex, el, ready) => {
   if (ex.listen) setTimeout(() => say(ex.en), 300);
   draw();
   return { check() {
-    el.classList.add('locked'); const got = chosen.map(i => ex.tiles[i]).join(' ');
-    return { ok: norm(got) === norm(ex.answer), correct: en(ex.en), note: esc(ex.ar) };
+    el.classList.add('locked'); const got = norm(chosen.map(i => ex.tiles[i]).join(' '));
+    const ok = (ex.alts || [ex.answer]).concat(ex.answer).some(x => norm(x) === got);
+    return { ok, correct: en(ex.en), note: esc(ex.ar) };
+  } };
+};
+/* حقل كتابة جملة (يُستخدم في الإملاء والترجمة الحرة وبديل النطق) */
+function sentenceInput(el, ready, ph) {
+  el.insertAdjacentHTML('beforeend', `<textarea class="write-inp" rows="2" dir="ltr" autocomplete="off" autocapitalize="sentences" autocorrect="off" spellcheck="false" placeholder="${ph || 'type in English…'}" aria-label="الإجابة"></textarea>`);
+  const inp = $('textarea', el); inp.oninput = () => ready(inp.value.trim().length > 0);
+  inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); const c = $('#chk'); if (c && !c.disabled) c.click(); } };
+  setTimeout(() => inp.focus(), 150); return inp;
+}
+function diffWords(got, target) { // تلوين الكلمات: الصحيحة بالأخضر والناقصة بالأحمر
+  const g = norm(got).split(' ');
+  return tok(target).map(w => { const n = norm(w); const hit = n.split(' ').every(x => g.some(y => y === x || (x.length > 4 && lev(x, y) <= 1))); return `<span class="${hit ? 'w-ok' : 'w-bad'}">${esc(w)}</span>`; }).join(' ');
+}
+R.dict = (ex, el, ready) => {
+  el.innerHTML = `<h2 class="q">استمع واكتب ما تسمعه</h2><div class="audio-row">${spkBtn(ex.en, 'xl')}<button class="spk slow" data-say="${esc(ex.en)}" data-slow="1" aria-label="ببطء">🐢</button></div>${ex.fallback ? `<div class="gnote" style="margin-bottom:12px">${ex.fallback}</div>` : ''}`;
+  bindSay(el); const inp = sentenceInput(el, ready); setTimeout(() => say(ex.en), 300);
+  return { check() {
+    inp.disabled = true; const m = matchAny(inp.value, [ex.en]);
+    return { ok: m.ok, correct: en(ex.en), note: m.ok && m.exact ? esc(ex.ar) : `<div dir="ltr" style="text-align:left">${diffWords(inp.value, ex.en)}</div>${esc(ex.ar)}` };
+  } };
+};
+R.ttype = (ex, el, ready) => {
+  el.innerHTML = `<h2 class="q">اكتب الترجمة بالإنجليزية</h2><div class="big ar">${esc(ex.ar)}</div>`;
+  const inp = sentenceInput(el, ready);
+  return { check() {
+    inp.disabled = true; const m = matchAny(inp.value, ex.alts);
+    const others = ex.alts.filter(x => norm(x) !== norm(m.hit || '')).slice(0, 2);
+    let note = m.ok && !m.exact ? `انتبه للإملاء الصحيح: ${en(m.hit)}` : '';
+    if (others.length && m.ok) note += `${note ? '<br>' : ''}صياغات صحيحة أخرى: ${others.map(en).join(' · ')}`;
+    if (!m.ok) note = `<div dir="ltr" style="text-align:left">${diffWords(inp.value, ex.en)}</div>${others.length ? 'وتُقبل أيضاً: ' + others.map(en).join(' · ') : ''}`;
+    return { ok: m.ok, correct: en(m.ok ? m.hit : ex.en), note };
   } };
 };
 R.write = (ex, el, ready) => {
@@ -322,8 +413,17 @@ R.write = (ex, el, ready) => {
     return { ok: false, correct: en(ex.answer) };
   } };
 };
+/* النطق: تقييم كل كلمة عبر خدمة التعرّف على الصوت في المتصفح (تحتاج إنترنت).
+   عند عدم توفر الميكروفون أو الإنترنت أو فشل الالتقاط مرتين ← تحويل تلقائي إلى تمرين كتابة. */
+function wordScores(heard, target) {
+  const h = norm(heard).split(' ');
+  return tok(target).map(w => { const n = norm(w).split(' '); return { w, ok: n.every(x => h.some(y => y === x || (x.length > 4 && lev(x, y) <= 1))) }; });
+}
 R.speak = (ex, el, ready, api) => {
-  let score = null, heard = '';
+  const toWriting = why => { ex.fallback = why; el.innerHTML = ''; const r = R.dict(ex, el, ready, api); impl.check = r.check; };
+  const impl = { check: null };
+  if (!micOK() || !navigator.onLine) { toWriting(!navigator.onLine ? '📴 لا يوجد إنترنت الآن، لذا تحوّل تمرين النطق إلى كتابة.' : '🎤 الميكروفون غير متاح هنا، لذا تحوّل تمرين النطق إلى كتابة.'); return impl; }
+  let res = null, heard = '', fails = 0;
   el.innerHTML = `<h2 class="q">انطق هذه الجملة</h2><div class="big">${spkBtn(ex.en)}${en(ex.en)}</div><div class="fill-ar">${esc(ex.ar)}</div>
     <button class="mic" aria-label="تحدّث">🎤</button><div class="heard">اضغط الميكروفون ثم تحدّث بوضوح</div>`;
   bindSay(el);
@@ -332,16 +432,19 @@ R.speak = (ex, el, ready, api) => {
     if (mic.classList.contains('rec')) return; mic.classList.add('rec'); hd.textContent = 'أستمع إليك…';
     listen((alts, err) => {
       mic.classList.remove('rec');
-      if (!alts) { hd.textContent = err === 'not-allowed' ? 'اسمح للمتصفح باستخدام الميكروفون، أو تخطَّ هذا التمرين.' : 'لم أسمع شيئاً، حاول مجدداً.'; return; }
-      let best = 0, bt = alts[0]; alts.forEach(a => { const s = wordSim(a, ex.en); if (s > best) { best = s; bt = a; } });
-      score = best; heard = bt; hd.innerHTML = `سمعتُ: ${en(bt)}`; ready(true);
+      if (!alts) { fails++; if (err === 'not-allowed' || err === 'network' || fails >= 2) return toWriting('🎤 تعذّر التقاط الصوت، لذا تحوّل التمرين إلى كتابة. يمكنك تجربة النطق في الدرس القادم.'); hd.textContent = 'لم أسمع شيئاً واضحاً، حاول مرة أخرى.'; return; }
+      let best = null; alts.forEach(a => { const sc = wordScores(a, ex.en); const k = sc.filter(x => x.ok).length; if (!best || k > best.k) best = { k, sc, a }; });
+      res = best; heard = best.a;
+      hd.innerHTML = `<div dir="ltr" class="word-score">${best.sc.map(x => `<span class="${x.ok ? 'w-ok' : 'w-bad'}">${esc(x.w)}</span>`).join(' ')}</div>`; ready(true);
     });
   };
-  api.showSkip('لا أستطيع التحدث الآن', api.skipNeutral);
-  return { check() {
-    const ok = score >= 0.7;
-    return { ok, soft: !ok, correct: en(ex.en), note: ok ? `نطق ممتاز! سمعتُ: ${en(heard)}` : `سمعتُ: ${en(heard)} — استمع للنطق وحاول مرة أخرى لاحقاً.` };
-  } };
+  api.showSkip('اكتب بدلاً من ذلك', () => { api.hideSkip(); toWriting('✍️ اخترت الكتابة بدلاً من النطق.'); });
+  impl.check = () => {
+    const pct = Math.round(res.k / res.sc.length * 100); const weak = res.sc.filter(x => !x.ok).map(x => x.w);
+    const ok = pct >= 70; logEv('speak', { en: ex.en, pct, weak });
+    return { ok, soft: !ok, correct: en(ex.en), note: `درجة النطق: <b class="en">${pct}%</b>${weak.length ? ` · كلمات تحتاج تدريباً: ${weak.map(en).join(' ، ')}` : ' · نطق واضح لكل الكلمات 👏'}` };
+  };
+  return impl;
 };
 R.match = (ex, el, ready, api) => {
   const left = shuffle(ex.pairs.map((p, i) => ({ i, t: p[1] })));   // العربية (يمين)
@@ -363,52 +466,47 @@ R.match = (ex, el, ready, api) => {
 const PRAISE = ['أحسنت! 🎉', 'ممتاز!', 'رائع! 👏', 'إجابة صحيحة!', 'عمل متقن!', 'استمر هكذا! 💪', 'مذهل! ✨'];
 function runSession(opt) {
   leave();
-  const p = P(); const total = opt.exercises.length; const hearted = opt.mode === 'lesson' && !p.settings.unlimited;
-  const st = { queue: opt.exercises.slice(), done: 0, firstOk: 0, seen: new Set(), mistakes: 0, t0: Date.now(), cur: null, phase: 'answer', api: null };
+  const p = P(); const total = opt.exercises.length; const isTest = opt.mode === 'test';
+  const st = { queue: opt.exercises.slice(), done: 0, firstOk: 0, seen: new Set(), mistakes: 0, t0: Date.now(), cur: null, phase: 'answer', api: null, wrongKeys: [] };
   app.innerHTML = `<div class="ses">
-    <div class="ses-top"><button class="icon-btn" data-x aria-label="خروج">✕</button><div class="pbar"><i></i></div>${hearted ? `<div class="hc">❤️ <span>${p.hearts}</span></div>` : opt.mode === 'review' ? '<div class="hc" style="color:var(--t-q)">🧠</div>' : ''}</div>
+    <div class="ses-top"><button class="icon-btn" data-x aria-label="خروج">✕</button><div class="pbar"><i></i></div>${opt.mode === 'review' ? '<div class="hc" style="color:var(--t-q)">🧠</div>' : isTest ? '<div class="hc" style="color:var(--gold)">🏁</div>' : ''}</div>
     <div class="ses-body"></div>
     <div class="ses-foot"><div class="fb"></div><div class="foot-row"><button class="btn ghost" data-skip hidden></button><button class="btn" id="chk" disabled>تحقّق</button></div></div></div>`;
   const body = $('.ses-body'), foot = $('.ses-foot'), fb = $('.fb'), chk = $('#chk'), skip = $('[data-skip]');
   $('[data-x]').onclick = () => confirmBox('هل تريد إنهاء الجلسة؟ لن يُحفظ تقدّمك فيها.', () => { leave(); go('home'); }, 'إنهاء');
-  const upd = () => { $('.pbar i').style.width = (st.done / total * 100) + '%'; const h = $('.hc span'); if (h) h.textContent = p.hearts; };
+  const upd = () => { $('.pbar i').style.width = (st.done / total * 100) + '%'; };
   function next() {
     if (!st.queue.length) return finish();
     st.cur = st.queue.shift(); st.phase = 'answer'; foot.className = 'ses-foot'; fb.innerHTML = ''; chk.textContent = 'تحقّق'; chk.disabled = true; skip.hidden = true;
     body.innerHTML = ''; body.className = 'ses-body'; void body.offsetWidth; window.scrollTo(0, 0);
-    const api = { autoOk: perfect => resolve({ ok: true, imperfect: !perfect }), showSkip: (t, fn) => { skip.hidden = false; skip.textContent = t; skip.onclick = fn; }, skipNeutral: () => { st.done++; upd(); next(); } };
+    const api = { autoOk: perfect => resolve({ ok: true, imperfect: !perfect }), showSkip: (t, fn) => { skip.hidden = false; skip.textContent = t; skip.onclick = fn; }, hideSkip: () => { skip.hidden = true; }, skipNeutral: () => { st.done++; upd(); next(); } };
     st.api = R[st.cur.type](st.cur, body, r => { if (st.phase === 'answer') chk.disabled = !r; }, api);
     if (st.cur.type === 'match') { chk.disabled = true; chk.textContent = 'طابِق كل الأزواج'; }
     window.__lisan.cur = st.cur;
   }
   function resolve(res) {
     st.phase = 'fb'; skip.hidden = true; const ex = st.cur; const first = !st.seen.has(ex); st.seen.add(ex);
+    logEv('answer', { mode: opt.mode, ctx: opt.ctx || null, ex: ex.type, key: ex.key || null, ok: !!res.ok, first });
     if (res.ok) {
       st.done++; if (first && !res.imperfect) st.firstOk++; SFX.ok(); foot.className = 'ses-foot ok';
       fb.innerHTML = `<div class="fb-t">${pick(PRAISE)}</div>${res.note ? `<div class="fb-n">${res.note}</div>` : ''}`;
-      if (ex.key) srsHit(p, ex.key, true, opt.mode); if (ex.sayAfter) setTimeout(() => say(ex.sayAfter), 150);
+      if (ex.key) srsHit(p, ex.key, true, opt.mode, !first); if (ex.sayAfter) setTimeout(() => say(ex.sayAfter), 150);
     } else if (res.soft) {
       st.done++; foot.className = 'ses-foot bad'; fb.innerHTML = `<div class="fb-t">قريب! تابع التدريب</div><div class="fb-a">${res.correct}</div><div class="fb-n">${res.note}</div>`; SFX.bad();
     } else {
       st.mistakes++; SFX.bad(); foot.className = 'ses-foot bad';
       fb.innerHTML = `<div class="fb-t">الإجابة الصحيحة:</div><div class="fb-a">${res.correct}</div>${res.note ? `<div class="fb-n">${res.note}</div>` : ''}`;
-      st.queue.push(ex); if (ex.key) srsHit(p, ex.key, false, opt.mode); if (hearted) loseHeart(p);
+      if (isTest) st.done++; else st.queue.push(ex);           // الاختبار لا يعيد السؤال
+      if (ex.key) { srsHit(p, ex.key, false, opt.mode); st.wrongKeys.push(ex.key); }
     }
     upd(); save(); chk.disabled = false; chk.textContent = 'متابعة'; chk.focus({ preventScroll: true });
   }
   chk.onclick = () => {
     if (st.phase === 'answer') { const r = st.api.check(); if (r) resolve(r); }
-    else { if (hearted && p.hearts <= 0) return outOfHearts(); next(); }
+    else next();
   };
-  function finish() { const secs = Math.round((Date.now() - st.t0) / 1000); opt.onDone({ acc: Math.round(st.firstOk / total * 100), secs, mistakes: st.mistakes, total }); }
+  function finish() { const secs = Math.round((Date.now() - st.t0) / 1000); opt.onDone({ acc: Math.round(st.firstOk / total * 100), secs, mistakes: st.mistakes, total, wrongKeys: st.wrongKeys }); }
   upd(); next();
-}
-function outOfHearts() {
-  leave(); const p = P(); save();
-  app.innerHTML = `<div class="result"><div class="big-ic">💔</div><h1 style="color:var(--bad)">نفدت القلوب</h1>
-    <p class="muted">يتجدد قلب كل 30 دقيقة (القادم بعد ${minsToHeart(p)} دقيقة).<br>أو راجع كلماتك الآن لتكسب قلباً فوراً.</p><div class="spacer"></div>
-    <button class="btn acc" data-r>🧠 راجع واكسب قلباً</button><button class="btn ghost" data-h>العودة للرئيسية</button></div>`;
-  $('[data-r]').onclick = startReview; $('[data-h]').onclick = () => go('home');
 }
 
 /* ---------------- شاشة النتيجة ---------------- */
@@ -478,37 +576,67 @@ function showGrammar(L, onEnd, readOnly) {
 
 /* ---------------- الدروس ---------------- */
 function startLesson(L) {
-  const p = P(); refreshHearts(p);
-  if (!p.settings.unlimited && p.hearts <= 0) return outOfHearts();
-  const run = () => runSession({ mode: 'lesson', exercises: genLesson(L), onDone: s => lessonDone(L, s) });
+  const run = () => runSession({ mode: 'lesson', ctx: L.id, exercises: genLesson(L), onDone: s => lessonDone(L, s) });
   showGrammar(L, run, false);
 }
 function lessonDone(L, s) {
   const p = P(); const first = !p.done[L.id]; const before = todayXP(p);
   p.done[L.id] = (p.done[L.id] || 0) + 1; p.stats.lessons++; if (s.acc === 100) p.stats.perfect++;
-  const xp = 10 + (s.acc === 100 ? 5 : 0) + (first ? 5 : 0); addXP(p, xp); refreshHearts(p); if (s.acc >= 90 && p.hearts < HEART_MAX) p.hearts++; L.vocab.forEach(v => srsAdd(p, v[0]));
+  const xp = 10 + Math.round(s.acc / 20) + (first ? 5 : 0); addXP(p, xp); // النقاط تتبع الدقة: التحفيز يخدم التعلّم
+  const fresh = L.vocab.filter(v => !p.srs[v[0]]).length; L.vocab.forEach(v => srsAdd(p, v[0]));
+  logEv('lesson', { lesson: L.id, unit: L.ui, acc: s.acc, secs: s.secs, xp, mistakes: s.mistakes, words: fresh, weak: s.wrongKeys.slice(0, 20) });
   const badges = checkBadges(p); save();
-  const unitDone = first && LESSONS.filter(l => l.ui === L.ui).every(l => p.done[l.id]);
-  resultScreen({ icon: unitDone ? '🏅' : s.acc === 100 ? '🌟' : '🎉', title: unitDone ? 'أنهيت الوحدة كاملة!' : 'أتممت الدرس!', sub: `${esc(L.ta)} · ${L.vocab.length} كلمات جديدة أضيفت للمراجعة`, xp, acc: s.acc, secs: s.secs, badges, goalBefore: before });
+  const unitReady = first && allLessonsDone(p, L.ui) && !p.passed[L.ui];
+  resultScreen({ icon: unitReady ? '🏁' : s.acc === 100 ? '🌟' : '🎉', title: unitReady ? 'أنهيت دروس الوحدة!' : 'أتممت الدرس!',
+    sub: unitReady ? 'اختبار نهاية الوحدة جاهز الآن، واجتيازه يفتح الوحدة التالية.' : `${esc(L.ta)} · ${fresh} كلمات جديدة أضيفت للمراجعة${s.wrongKeys.length ? ' · وما أخطأت فيه سيعود إليك في المراجعة' : ''}`,
+    xp, acc: s.acc, secs: s.secs, badges, goalBefore: before });
 }
 
-/* ---------------- المراجعة الذكية ---------------- */
+/* ---------------- اختبار نهاية الوحدة ---------------- */
+const PASS_MARK = 80;
+function unitTestSheet(u) {
+  const p = P(); const stt = testState(p, u, currentItem(p)); const U = C.units[u];
+  if (stt === 'lock') return toast('🔒 أكمل كل دروس الوحدة أولاً');
+  const hist = (p.tests || []).filter(t => t.unit === u).slice(-3).reverse();
+  sheet(`<div class="sh-ic" style="background:${U.color}">🏁</div><h3>اختبار نهاية الوحدة ${u + 1}</h3><p class="muted">${U.t}</p>
+    <p>18 سؤالاً من كل دروس الوحدة · درجة النجاح <b class="en">${PASS_MARK}%</b><br>${u + 1 < NU ? 'النجاح يفتح الوحدة التالية.' : 'النجاح يختم المنهج المتاح.'} وبلا حد لعدد المحاولات.</p>
+    ${hist.length ? `<div class="card" style="text-align:start;margin:10px 0">${hist.map(t => `<div class="set-row"><span><b class="en">${t.score}%</b><small> · ${fmtDate(t.t)} · ${Math.round(t.secs / 60) || 1} دقيقة</small></span><span class="pill ${t.passed ? 'ok' : ''}">${t.passed ? 'ناجح' : 'لم ينجح'}</span></div>`).join('')}</div>` : ''}
+    <button class="btn acc" data-go>${p.passed[u] ? 'أعد الاختبار' : 'ابدأ الاختبار'}</button>`, (s, close) => { $('[data-go]', s).onclick = () => { close(); startUnitTest(u); }; });
+}
+function startUnitTest(u) {
+  runSession({ mode: 'test', ctx: 'test' + u, exercises: genUnitTest(u), onDone: s => {
+    const p = P(); const before = todayXP(p); const passed = s.acc >= PASS_MARK; const firstPass = passed && !p.passed[u];
+    const rec = { unit: u, score: s.acc, passed, secs: s.secs, t: Date.now(), day: today() };
+    p.tests = (p.tests || []).concat(rec).slice(-100); p.stats.tests++;
+    if (passed && (!p.passed[u] || (p.passed[u].score || 0) < s.acc)) p.passed[u] = { score: s.acc, day: today() };
+    const xp = passed ? 20 + Math.round(s.acc / 10) : 5; addXP(p, xp);
+    logEv('test', rec); const badges = checkBadges(p); save();
+    const weakLessons = [...new Set(s.wrongKeys.map(k => (k.startsWith('B:') && BMAP[k.slice(2)]) ? BMAP[k.slice(2)].L.ta : (k.startsWith('S:') && SMAP[k.slice(2)]) ? SMAP[k.slice(2)].L.ta : null).filter(Boolean))];
+    resultScreen({ icon: passed ? '🏆' : '💪', title: passed ? 'نجحت في الاختبار!' : 'قريب من النجاح',
+      sub: passed ? (firstPass && u + 1 < NU ? `فُتحت الوحدة ${u + 2}: ${C.units[u + 1].t}` : 'أحسنت!') : `تحتاج ${PASS_MARK}% للنجاح. راجع${weakLessons.length ? ': ' + weakLessons.join('، ') : ' دروس الوحدة'}، ثم أعد المحاولة.`,
+      xp, acc: s.acc, secs: s.secs, badges, goalBefore: before });
+  } });
+}
+
+/* ---------------- المراجعة الذكية (FSRS) ---------------- */
 function reviewEx(k, p) {
-  const v = VMAP[k] ? [k, VMAP[k].ar] : [k, k]; const box = p.srs[k].box;
-  const types = box >= 3 ? ['write', 'listen', 'enar', 'aren'] : ['aren', 'enar', 'listen', 'aren'];
-  const t = pick(types);
+  if (k.startsWith('B:') && BMAP[k.slice(2)]) return exFill(BMAP[k.slice(2)].b);
+  if (k.startsWith('S:') && SMAP[k.slice(2)]) { const s = SMAP[k.slice(2)].s; return pick(Array.isArray(s[2]) ? [exOrder, exDict, exTType] : [exOrder, exDict])(s); }
+  if (k.startsWith('P:')) { const [a, b] = k.slice(2).split('|'); const L = LESSONS.find(l => l.pairs && l.pairs.some(x => x[0] === a && x[1] === b)); const pr = L ? L.pairs.find(x => x[0] === a && x[1] === b) : [a, b, '', '']; return exPair(pr); }
+  const v = VMAP[k] ? [k, VMAP[k].ar] : [k, k]; const strong = (p.srs[k].s || 0) >= 4;
+  const t = pick(strong ? ['write', 'listen', 'enar', 'aren'] : ['aren', 'enar', 'listen', 'aren']);
   return t === 'write' ? exWrite(v) : t === 'listen' ? exListenWord(v) : t === 'enar' ? exMcEnAr(v) : exMcArEn(v);
 }
 function startReview() {
-  const p = P(); const keys = Object.keys(p.srs);
+  const p = P(); const keys = Object.keys(p.srs).filter(k => !k.startsWith('S:') || SMAP[k.slice(2)]);
   if (!keys.length) return toast('أكمل درساً أولاً لتظهر كلماتك هنا');
-  const t = today(); let due = shuffle(keys.filter(k => p.srs[k].due <= t)).slice(0, 12);
-  if (due.length < 6) due = due.concat(shuffle(keys.filter(k => !due.includes(k))).sort((a, b) => p.srs[a].box - p.srs[b].box).slice(0, 6 - due.length));
-  runSession({ mode: 'review', exercises: shuffle(due.map(k => reviewEx(k, p))), onDone: s => {
+  const t = today(); let due = shuffle(keys.filter(k => p.srs[k].due <= t)).sort((a, b) => FS.retrievability(p.srs[a], t) - FS.retrievability(p.srs[b], t)).slice(0, 15);
+  if (due.length < 6) due = due.concat(keys.filter(k => !due.includes(k)).sort((a, b) => FS.retrievability(p.srs[a], t) - FS.retrievability(p.srs[b], t)).slice(0, 6 - due.length));
+  runSession({ mode: 'review', ctx: 'review', exercises: shuffle(due.map(k => reviewEx(k, p))), onDone: s => {
     const before = todayXP(p); const xp = 5 + Math.round(due.length * s.acc / 100); addXP(p, xp); p.stats.reviews++;
-    refreshHearts(p); const gained = !p.settings.unlimited && p.hearts < HEART_MAX; if (gained) p.hearts++;
-    const badges = checkBadges(p); save();
-    resultScreen({ icon: '🧠', title: 'أنهيت المراجعة!', sub: gained ? 'كسبت قلباً ❤️ +1' : 'ذاكرتك تتقوّى يوماً بعد يوم', xp, acc: s.acc, secs: s.secs, badges, goalBefore: before });
+    logEv('review', { n: due.length, acc: s.acc, secs: s.secs, xp }); const badges = checkBadges(p); save();
+    const left = dueKeys(p).length;
+    resultScreen({ icon: '🧠', title: 'أنهيت المراجعة!', sub: left ? `بقي ${left} عنصراً مستحقاً اليوم` : 'لا شيء مستحق اليوم. ذاكرتك في أفضل حال!', xp, acc: s.acc, secs: s.secs, badges, goalBefore: before });
   } });
 }
 
@@ -543,9 +671,9 @@ function runPlacement() {
 function finishPlacement(score, asked) {
   const p = P(); let passed = 0; for (let i = 0; i < 4; i++) { if (asked[i] && score[i] >= 5) passed++; else break; }
   const level = ['A1', 'A2', 'B1', 'B1+', 'B2+'][passed];
-  const start = passed === 0 ? 0 : passed === 1 ? UNIT_START[3] : passed === 2 ? UNIT_START[6] : LESSONS.length;
-  p.placement = { level, date: today(), score, asked }; if (start > p.startIndex) p.startIndex = start;
-  const badges = checkBadges(p); save();
+  const start = passed === 0 ? 0 : passed === 1 ? 3 : passed === 2 ? 6 : NU;
+  p.placement = { level, date: today(), score, asked }; if (start > p.startUnit) p.startUnit = start;
+  logEv('placement', { level, score, asked }); const badges = checkBadges(p); save();
   const desc = { A1: 'مبتدئ: سنبني الأساس خطوة بخطوة من البداية.', A2: 'أساسي: تجاوزت الأساسيات، وستبدأ من الوحدة 4.', B1: 'متوسط: ممتاز! ستبدأ من وحدة المستوى المتوسط.', 'B1+': 'فوق المتوسط: فُتحت لك كل الوحدات المتاحة. ابدأ من أي درس.', 'B2+': 'متقدم: فُتح لك المنهج كاملاً. والمستويات الأعلى قادمة.' }[level];
   leave(); SFX.win();
   app.innerHTML = `<div class="result"><div class="big-ic">🎯</div><p class="muted" style="margin:10px 0 0">مستواك</p><div class="lvl-big">${level}</div><p>${desc}</p>
@@ -598,7 +726,7 @@ function startConvo(c) {
   }
   function end() {
     const before = todayXP(p); const xp = 10 + (mistakes === 0 ? 5 : 0); const first = !p.convos[c.id];
-    p.convos[c.id] = true; p.stats.talks++; addXP(p, xp); const badges = checkBadges(p); save();
+    p.convos[c.id] = true; p.stats.talks++; addXP(p, xp); logEv('convo', { convo: c.id, mistakes, xp }); const badges = checkBadges(p); save();
     const total = c.turns.length; const acc = Math.round(Math.max(0, total - mistakes) / total * 100);
     setTimeout(() => resultScreen({ icon: '💬', title: 'محادثة ناجحة!', sub: first ? `أتممت «${esc(c.ta)}» لأول مرة` : 'تدريب ممتاز على الحوار', xp, acc, secs: Math.round((Date.now() - t0) / 1000), badges, goalBefore: before, next: () => go('home', 'talk') }), 600);
   }
@@ -609,29 +737,66 @@ function startConvo(c) {
 const AVATARS = ['🦊', '🐼', '🦁', '🐯', '🐨', '🐸', '🐵', '🐬', '🦄', '🐢', '🐙', '🐝', '🦅', '🐪', '🐎', '🦒', '🐧', '🐳'];
 const GOALS = [[15, 'خفيف', 'درس واحد تقريباً · 5 دقائق'], [30, 'منتظم', 'درسان · 10 دقائق'], [50, 'جاد', '3 دروس · 15 دقيقة'], [80, 'مكثّف', '5 دروس · 25 دقيقة']];
 
+/* ---------- لوحة الرقم السري (قفل للأطفال وولي الأمر) ---------- */
+function pinPad(title, onDone, opts = {}) {
+  let v = '';
+  sheet(`<h3>${title}</h3><p class="muted">${opts.sub || 'أدخل 4 أرقام'}</p><div class="pin-dots">${'<i></i>'.repeat(4)}</div><div class="pin-msg"></div>
+    <div class="pin-pad" dir="ltr">${[1, 2, 3, 4, 5, 6, 7, 8, 9, '', 0, '⌫'].map(k => k === '' ? '<span></span>' : `<button data-k="${k}">${k}</button>`).join('')}</div>`, (s, close) => {
+    const dots = $$('.pin-dots i', s), msg = $('.pin-msg', s);
+    const draw = () => dots.forEach((d, i) => d.classList.toggle('on', i < v.length));
+    $$('[data-k]', s).forEach(b => b.onclick = () => {
+      const k = b.dataset.k; if (k === '⌫') v = v.slice(0, -1); else if (v.length < 4) v += k; draw();
+      if (v.length === 4) setTimeout(() => { const r = onDone(v); if (r === false) { msg.textContent = 'الرقم غير صحيح، حاول مرة أخرى.'; v = ''; draw(); s.querySelector('.pin-dots').classList.add('shake'); setTimeout(() => s.querySelector('.pin-dots').classList.remove('shake'), 400); } else close(); }, 120);
+    });
+  });
+}
+function parentGate(then) { // يحمي إضافة وحذف المتعلمين والاستيراد ولوحة ولي الأمر
+  if (!DB.family || !DB.family.pin) return then();
+  pinPad('🔐 رقم ولي الأمر', v => { if (hashPin(v) !== DB.family.pin) return false; then(); });
+}
+
+function scrFamilySetup() {
+  leave(); SCREEN = 'setup'; let pin = null;
+  app.innerHTML = `<div class="form"><div class="logo" style="justify-content:center;display:flex"><img src="icon.svg" alt="" onerror="this.remove()">لِسان</div>
+    <h2 style="text-align:center;margin-top:18px">مرحباً بكم!</h2><p style="text-align:center">لنُعدّ حساب العائلة. بعدها يضيف كل فرد ملفه الخاص.</p>
+    <label class="field" for="fn">اسم العائلة</label><input class="inp" id="fn" maxlength="24" placeholder="مثال: عائلة أبو أحمد">
+    <label class="field">رقم سري لولي الأمر <small class="muted">(اختياري)</small></label>
+    <p style="margin:0 0 8px;font-size:14px">يمنع الأطفال من حذف الملفات أو تغيير الإعدادات المهمة.</p>
+    <button class="btn ghost" data-pin>🔐 تعيين رقم سري</button>
+    <button class="btn" data-go disabled>متابعة</button></div>`;
+  const fn = $('#fn'); fn.oninput = () => { $('[data-go]').disabled = !fn.value.trim(); }; setTimeout(() => fn.focus(), 100);
+  $('[data-pin]').onclick = () => pinPad('رقم ولي الأمر الجديد', v => { pin = hashPin(v); $('[data-pin]').textContent = '✅ تم تعيين الرقم السري'; });
+  $('[data-go]').onclick = () => { DB.family = { name: fn.value.trim(), pin, created: Date.now() }; save(); scrNewProfile(); };
+}
 function scrProfiles() {
   leave(); SCREEN = 'profiles'; DB.current = null; saveLocal(); applyTheme();
-  app.innerHTML = `<div class="prof-scr"><div class="logo"><img src="icon.svg" alt="" onerror="this.remove()">لِسان</div><p class="tagline">تعلّم الإنجليزية خطوة بخطوة، دقائق كل يوم.</p>
+  if (!DB.family) return scrFamilySetup();
+  app.innerHTML = `<div class="prof-scr"><div class="logo"><img src="icon.svg" alt="" onerror="this.remove()">لِسان</div><p class="tagline">${esc(DB.family.name)} · تعلّم الإنجليزية خطوة بخطوة</p>
     <h2 style="margin-bottom:16px">من يتعلّم الآن؟</h2>
-    <div class="prof-grid">${DB.profiles.map(p => `<button class="prof" data-id="${p.id}"><span class="av">${p.avatar}</span><b>${esc(p.name)}</b><small>${levelLabel(p)} · 🔥 ${streakNow(p)} · ⭐ ${p.xp}</small></button>`).join('')}
+    <div class="prof-grid">${DB.profiles.map(p => `<button class="prof" data-id="${p.id}"><span class="av">${p.avatar}</span><b>${esc(p.name)}${p.pin ? ' 🔒' : ''}</b><small><span class="en">${levelLabel(p)}</span> · 🔥 ${streakNow(p)} · ⭐ ${p.xp}</small></button>`).join('')}
     <button class="prof add" data-add><span class="av">＋</span>إضافة فرد</button></div>
     <p class="muted" style="font-size:13px">${syncLine()}</p></div>`;
-  $$('[data-id]').forEach(b => b.onclick = () => { DB.current = b.dataset.id; saveLocal(); go('home'); });
-  $('[data-add]').onclick = scrNewProfile;
+  $$('[data-id]').forEach(b => b.onclick = () => {
+    const p = DB.profiles.find(x => x.id === b.dataset.id); const enter = () => { DB.current = p.id; saveLocal(); go('home'); };
+    if (p.pin) pinPad(`${p.avatar} ${esc(p.name)}`, v => { if (hashPin(v) !== p.pin) return false; enter(); }); else enter();
+  });
+  $('[data-add]').onclick = () => parentGate(scrNewProfile);
 }
 function scrNewProfile() {
-  leave(); let name = '', av = AVATARS[rnd(AVATARS.length)], goal = 30, step = 0;
+  leave(); let name = '', av = AVATARS[rnd(AVATARS.length)], goal = 30, step = 0, pin = null;
   function draw() {
     if (step === 0) {
       app.innerHTML = `<div class="form"><button class="icon-btn" data-b aria-label="رجوع">→</button><h2>ملف جديد</h2><p>لكل فرد في العائلة ملفه وتقدّمه الخاص.</p>
         <label class="field" for="nm">الاسم</label><input class="inp" id="nm" maxlength="20" placeholder="مثال: محمد" value="${esc(name)}">
         <label class="field">الصورة الرمزية</label><div class="av-grid">${AVATARS.map(a => `<button class="${a === av ? 'sel' : ''}" data-av="${a}">${a}</button>`).join('')}</div>
         <label class="field">الهدف اليومي</label><div class="goal-list">${GOALS.map(g => `<button class="goal ${g[0] === goal ? 'sel' : ''}" data-g="${g[0]}"><span>${g[1]} <small>· ${g[2]}</small></span><span class="en">${g[0]} XP</span></button>`).join('')}</div>
+        <label class="field">قفل الملف <small class="muted">(اختياري)</small></label><button class="btn ghost" data-pin style="margin-top:0">${pin ? '✅ تم تعيين الرقم السري' : '🔒 رقم سري لهذا الملف'}</button>
         <button class="btn" data-n ${name.trim() ? '' : 'disabled'}>التالي</button></div>`;
+      $('[data-pin]').onclick = () => pinPad('رقم سري للملف', v => { pin = hashPin(v); $('[data-pin]').textContent = '✅ تم تعيين الرقم السري'; });
       const nm = $('#nm'); nm.oninput = () => { name = nm.value; $('[data-n]').disabled = !name.trim(); };
       $$('[data-av]').forEach(b => b.onclick = () => { av = b.dataset.av; $$('[data-av]').forEach(x => x.classList.toggle('sel', x === b)); });
       $$('[data-g]').forEach(b => b.onclick = () => { goal = +b.dataset.g; $$('[data-g]').forEach(x => x.classList.toggle('sel', x === b)); });
-      $('[data-b]').onclick = () => go('profiles');
+      $('[data-b]').onclick = () => DB.profiles.length ? go('profiles') : scrFamilySetup();
       $('[data-n]').onclick = () => { step = 1; draw(); };
       if (!name) setTimeout(() => nm.focus(), 100);
     } else {
@@ -639,7 +804,7 @@ function scrNewProfile() {
         <button class="choice-big" data-z><span class="ic">🌱</span><span><b>من البداية</b><span>لا أعرف الإنجليزية، أو أريد تأسيساً قوياً.</span></span></button>
         <button class="choice-big" data-p><span class="ic">🎯</span><span><b>اختبار تحديد المستوى</b><span>أعرف بعض الإنجليزية، حدّد لي نقطة البداية.</span></span></button></div>`;
       $('[data-b]').onclick = () => { step = 0; draw(); };
-      const create = () => { const p = newProfile(name.trim(), av, goal); DB.profiles.push(p); DB.current = p.id; save(); };
+      const create = () => { const p = newProfile(name.trim(), av, goal); p.pin = pin; DB.profiles.push(p); DB.current = p.id; save(); logEv('learner_created', { name: p.name }); };
       $('[data-z]').onclick = () => { create(); go('home'); };
       $('[data-p]').onclick = () => { create(); startPlacement(); };
     }
@@ -649,45 +814,49 @@ function scrNewProfile() {
 
 let TAB = 'path';
 function scrHome(tab) {
-  leave(); SCREEN = 'home'; const p = P(); if (!p) return go('profiles'); if (tab) TAB = tab; refreshHearts(p); save(); applyTheme();
-  const s = streakNow(p);
+  leave(); SCREEN = 'home'; const p = P(); if (!p) return go('profiles'); if (tab) TAB = tab; applyTheme();
+  const s = streakNow(p); const due = dueKeys(p).length;
   app.innerHTML = `<div class="home"><div class="topbar">
       <button class="lvl-chip" data-sw aria-label="تبديل الملف">${p.avatar} <span class="en">${levelLabel(p)}</span></button>
       <button class="stat flame ${s ? '' : 'off'}" data-st>🔥<span class="n">${s}</span></button>
       <button class="stat gem" data-xp>⭐<span class="n">${p.xp}</span></button>
-      <button class="stat heart" data-hr>❤️<span class="n">${p.settings.unlimited ? '∞' : p.hearts}</span></button></div>
+      <button class="stat brain ${due ? '' : 'off'}" data-hr>🧠<span class="n">${due}</span></button></div>
     <div class="tab-body"></div>
     <nav class="tabs"><div class="tabs-in">${[['path', '🏠', 'التعلّم'], ['review', '🧠', 'المراجعة'], ['talk', '💬', 'المحادثة'], ['me', '👤', 'ملفي']].map(t => `<button data-tab="${t[0]}" class="${TAB === t[0] ? 'on' : ''}"><span class="ti">${t[1]}</span>${t[2]}</button>`).join('')}</div></nav></div>`;
   $$('[data-tab]').forEach(b => b.onclick = () => { TAB = b.dataset.tab; scrHome(); });
   $('[data-sw]').onclick = () => go('profiles');
   $('[data-st]').onclick = () => toast(s ? `سلسلتك ${s} يوم 🔥 — تعلّم اليوم لتحافظ عليها` : 'ابدأ درساً اليوم لتشعل سلسلتك 🔥');
   $('[data-xp]').onclick = () => toast(`مجموع نقاطك ${p.xp} XP · اليوم ${todayXP(p)}`);
-  $('[data-hr]').onclick = () => toast(p.settings.unlimited ? 'القلوب غير محدودة (من الإعدادات)' : p.hearts >= HEART_MAX ? 'قلوبك ممتلئة ❤️' : `قلب جديد بعد ${minsToHeart(p)} دقيقة، أو راجع لتكسب قلباً`);
+  $('[data-hr]').onclick = () => { if (due) { TAB = 'review'; scrHome(); } else toast('لا توجد مراجعات مستحقة الآن 👍'); };
   const body = $('.tab-body');
   ({ path: tabPath, review: tabReview, talk: tabTalk, me: tabMe })[TAB](p, body);
 }
 const OFF = [0, 46, 70, 46, 0, -46, -70, -46];
 function tabPath(p, el) {
-  const cur = currentIndex(p); const tx = todayXP(p); const pct = Math.min(100, Math.round(tx / p.goal * 100));
-  let h = `<div class="card goal-card"><div class="ring" style="--p:${pct}"><span>${pct >= 100 ? '🎯' : '⚡'}</span></div><div><b>${pct >= 100 ? 'حققت هدف اليوم!' : 'هدفك اليومي'}</b><small class="en">${tx} / ${p.goal} XP</small></div></div>`;
+  const cur = currentItem(p); const tx = todayXP(p); const pct = Math.min(100, Math.round(tx / p.goal * 100)); const due = dueKeys(p).length;
+  let h = `<div class="card goal-card"><div class="ring" style="--p:${pct}"><span>${pct >= 100 ? '🎯' : '⚡'}</span></div><div style="flex:1"><b>${pct >= 100 ? 'حققت هدف اليوم!' : 'هدفك اليومي'}</b><small class="en">${tx} / ${p.goal} XP</small></div>${due ? `<button class="btn acc sm" data-rvq>🧠 ${due} للمراجعة</button>` : ''}</div>`;
   if (!p.placement) h += `<button class="card cta-card" data-pl><span class="ic">🎯</span><span><b>اختبار تحديد المستوى</b><small>تعرف الإنجليزية؟ تخطَّ ما تعرفه وابدأ من مستواك.</small></span></button>`;
   C.units.forEach((u, ui) => {
-    const ls = LESSONS.filter(l => l.ui === ui); const dn = ls.filter(l => p.done[l.id]).length;
-    h += `<section class="unit"><div class="uhead" style="--uc:${u.color}"><div><small>الوحدة ${ui + 1} · ${u.lvl} · ${dn}/${ls.length}</small><h3>${u.t}</h3><p>${u.d}</p></div><button class="gbtn" data-ug="${ui}" aria-label="القواعد">📖</button></div><div class="path">`;
-    ls.forEach((l, k) => { const stt = nodeState(p, l.gi, cur);
+    const ls = UNIT_LESSONS[ui]; const dn = ls.filter(l => p.done[l.id]).length; const open = unitOpen(p, ui);
+    h += `<section class="unit ${open ? '' : 'u-locked'}"><div class="uhead" style="--uc:${u.color}"><div><small>الوحدة ${ui + 1} · <span class="en">${u.lvl}</span> · <span class="en">${dn}/${ls.length}</span>${p.passed[ui] ? ' · ✅ ناجح' : ''}</small><h3>${u.t}</h3><p>${open ? u.d : '🔒 تُفتح بعد اجتياز اختبار الوحدة السابقة'}</p></div><button class="gbtn" data-ug="${ui}" aria-label="القواعد">📖</button></div><div class="path">`;
+    ls.forEach((l, k) => { const stt = nodeState(p, l, cur);
       h += `<div class="nodewrap" style="transform:translateX(${OFF[k % OFF.length]}px)">${stt === 'cur' ? '<div class="start-tag">ابدأ</div>' : ''}<button class="node ${stt}" data-g="${l.gi}" style="--uc:${u.color}" aria-label="${esc(l.ta)}">${stt === 'done' ? '✓' : stt === 'lock' ? '🔒' : l.icon}</button><div class="nlabel">${esc(l.ta)}</div></div>`; });
+    const ts = testState(p, ui, cur);
+    h += `<div class="nodewrap">${ts === 'cur' ? '<div class="start-tag">الاختبار</div>' : ''}<button class="node test ${ts}" data-t="${ui}" style="--uc:${u.color}" aria-label="اختبار الوحدة">${ts === 'done' ? '🏆' : ts === 'lock' ? '🔒' : '🏁'}</button><div class="nlabel">اختبار الوحدة${p.passed[ui] && p.passed[ui].score != null ? ` · <span class="en">${p.passed[ui].score}%</span>` : ''}</div></div>`;
     h += `</div></section>`;
   });
-  h += `<div class="soon"><b>🚀 قريباً</b>المستوى B2، ووحدة الإنجليزية الهندسية، ولغات أخرى.</div>`;
+  h += `<div class="soon"><b>🚀 قريباً</b>بقية المستوى المتوسط، ثم المستوى المتقدم.</div>`;
   el.innerHTML = h;
   const pl = $('[data-pl]', el); if (pl) pl.onclick = startPlacement;
+  const rq = $('[data-rvq]', el); if (rq) rq.onclick = startReview;
   $$('[data-g]', el).forEach(b => b.onclick = () => lessonSheet(LESSONS[+b.dataset.g]));
+  $$('[data-t]', el).forEach(b => b.onclick = () => unitTestSheet(+b.dataset.t));
   $$('[data-ug]', el).forEach(b => b.onclick = () => unitGrammarSheet(+b.dataset.ug));
   const c = $('.node.cur', el); if (c && c.getBoundingClientRect().bottom > innerHeight - 90) setTimeout(() => c.scrollIntoView({ block: 'center', behavior: 'smooth' }), 60);
 }
 function lessonSheet(L) {
-  const p = P(); const stt = nodeState(p, L.gi, currentIndex(p)); const u = C.units[L.ui];
-  if (stt === 'lock') return toast('🔒 أكمل الدرس السابق أولاً');
+  const p = P(); const stt = nodeState(p, L, currentItem(p)); const u = C.units[L.ui];
+  if (stt === 'lock') return toast(unitOpen(p, L.ui) ? '🔒 أكمل الدرس السابق أولاً' : '🔒 اجتز اختبار الوحدة السابقة أولاً');
   sheet(`<div class="sh-ic" style="background:${u.color}">${L.icon}</div><h3>${esc(L.ta)}</h3><p class="muted">${en(L.t)} · الوحدة ${L.ui + 1} · الدرس ${L.li + 1}</p>
     ${p.done[L.id] ? `<p class="pill ok" style="display:inline-block">أكملته ${p.done[L.id]} مرة ✓</p>` : stt === 'skip' ? '<p class="pill" style="display:inline-block">تخطيته باختبار المستوى</p>' : ''}
     <button class="btn" data-go>${p.done[L.id] ? 'تدرّب مجدداً' : 'ابدأ الدرس'}</button><button class="btn ghost" data-gr>📖 شرح القواعد فقط</button>`, (s, close) => {
@@ -701,16 +870,19 @@ function unitGrammarSheet(ui) {
     $$('[data-l]', s).forEach(b => b.onclick = () => { close(); showGrammar(LESSONS[+b.dataset.l], () => go('home'), true); });
   });
 }
+const STRENGTH = [[0, 'جديدة'], [3, 'ضعيفة'], [10, 'متوسطة'], [30, 'جيدة'], [1e9, 'راسخة']];
+const strengthOf = c => { const s = c.s || 0; return s < 1.5 ? 0 : s < 3 ? 1 : s < 10 ? 2 : s < 30 ? 3 : 4; };
 function tabReview(p, el) {
-  const keys = Object.keys(p.srs); const t = today(); const due = keys.filter(k => p.srs[k].due <= t).length;
-  const boxes = [1, 2, 3, 4, 5].map(b => keys.filter(k => p.srs[k].box === b).length); const mx = Math.max(1, ...boxes);
+  const keys = Object.keys(p.srs); const t = today(); const due = dueKeys(p).length;
+  const words = keys.filter(isWordKey); const other = keys.length - words.length;
+  const buckets = [0, 1, 2, 3, 4].map(b => keys.filter(k => strengthOf(p.srs[k]) === b).length); const mx = Math.max(1, ...buckets);
+  const dots = c => { const n = strengthOf(c) + 1; return '●'.repeat(n) + '○'.repeat(5 - n); };
   el.innerHTML = `<div class="card" style="text-align:center"><div style="font-size:52px">🧠</div><h2>المراجعة الذكية</h2>
-      <p class="muted">${keys.length ? (due ? `لديك <b>${due}</b> كلمة مستحقة للمراجعة اليوم.` : 'لا توجد كلمات مستحقة الآن، لكن التدريب الإضافي يقوّي ذاكرتك.') : 'أكمل درسك الأول لتبدأ كلماتك بالظهور هنا.'}</p>
-      <button class="btn acc" data-rv ${keys.length ? '' : 'disabled'}>ابدأ المراجعة${due ? ` (${Math.min(due, 12)})` : ''}</button>
-      <p class="muted" style="font-size:13px;margin:10px 0 0">كل جلسة مراجعة تمنحك قلباً ❤️</p></div>
-    <h3 class="sec-h">قوة الحفظ</h3><div class="card"><div class="boxes">${boxes.map((n, i) => `<div class="b"><small class="en">${n}</small><div class="bar" style="height:${n / mx * 100}%;opacity:${0.35 + i * 0.16}"></div><small>${['جديدة', 'ضعيفة', 'متوسطة', 'جيدة', 'راسخة'][i]}</small></div>`).join('')}</div>
-      <p class="muted" style="font-size:13px;margin:12px 0 0">التطبيق يعيد عليك الكلمة قبل أن تنساها: بعد يوم، ثم يومين، ثم 4، ثم 8، ثم 16 يوماً (التكرار المتباعد).</p></div>
-    <h3 class="sec-h">كلماتي (${keys.length})</h3><div class="card" style="max-height:340px;overflow:auto">${keys.length ? keys.map(k => `<div class="set-row"><span>${en(k)} <small class="muted">— ${esc(VMAP[k] ? VMAP[k].ar : '')}</small></span><span style="display:flex;gap:8px;align-items:center"><span class="pill">${'●'.repeat(p.srs[k].box)}${'○'.repeat(5 - p.srs[k].box)}</span>${spkBtn(k, 'sm')}</span></div>`).join('') : '<p class="muted">لا توجد كلمات بعد.</p>'}</div>`;
+      <p class="muted">${keys.length ? (due ? `لديك <b class="en">${due}</b> عنصراً مستحقاً للمراجعة اليوم.` : 'لا شيء مستحق الآن، لكن التدريب الإضافي يقوّي ذاكرتك.') : 'أكمل درسك الأول لتبدأ كلماتك بالظهور هنا.'}</p>
+      <button class="btn acc" data-rv ${keys.length ? '' : 'disabled'}>ابدأ المراجعة${due ? ` (<span class="en">${Math.min(due, 15)}</span>)` : ''}</button></div>
+    <h3 class="sec-h">قوة الحفظ</h3><div class="card"><div class="boxes">${buckets.map((n, i) => `<div class="b"><small class="en">${n}</small><div class="bar" style="height:${n / mx * 100}%;opacity:${0.35 + i * 0.16}"></div><small>${STRENGTH[i][1]}</small></div>`).join('')}</div>
+      <p class="muted" style="font-size:13px;margin:12px 0 0">يحسب التطبيق لكل كلمة موعداً خاصاً بها حسب أدائك: الكلمة السهلة تتباعد مراجعتها، وما تخطئ فيه يعود إليك قريباً. ${other ? `ويشمل ذلك <b class="en">${other}</b> جملة وقاعدة أخطأت فيها سابقاً.` : ''}</p></div>
+    <h3 class="sec-h">كلماتي (<span class="en">${words.length}</span>)</h3><div class="card" style="max-height:340px;overflow:auto">${words.length ? words.map(k => `<div class="set-row"><span>${en(k)} <small class="muted">— ${esc(VMAP[k] ? VMAP[k].ar : '')}</small></span><span style="display:flex;gap:8px;align-items:center"><span class="pill">${dots(p.srs[k])}</span>${spkBtn(k, 'sm')}</span></div>`).join('') : '<p class="muted">لا توجد كلمات بعد.</p>'}</div>`;
   bindSay(el); const b = $('[data-rv]', el); b.onclick = startReview;
 }
 function tabTalk(p, el) {
@@ -723,18 +895,20 @@ function tabMe(p, el) {
   const days = [...Array(7)].map((_, i) => addDays(today(), i - 6)); const vals = days.map(d => p.xpLog[d] || 0); const mx = Math.max(p.goal, ...vals);
   const DN = ['أحد', 'إثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'];
   const doneN = Object.keys(p.done).length;
-  el.innerHTML = `<div class="card" style="display:flex;gap:14px;align-items:center"><div style="font-size:56px">${p.avatar}</div><div style="flex:1"><h2>${esc(p.name)}</h2><span class="muted">المستوى <b class="en">${levelLabel(p)}</b> · منذ ${new Date(p.created).toLocaleDateString('ar')}</span></div><button class="btn ghost sm" data-ren>تعديل</button></div>
+  el.innerHTML = `<div class="card" style="display:flex;gap:14px;align-items:center"><div style="font-size:56px">${p.avatar}</div><div style="flex:1"><h2>${esc(p.name)}</h2><span class="muted">المستوى <b class="en">${levelLabel(p)}</b> · منذ <span class="en">${fmtDate(p.created)}</span></span></div><button class="btn ghost sm" data-ren>تعديل</button></div>
     <h3 class="sec-h">الإحصائيات</h3><div class="kpis">
       <div class="kpi"><span class="ic">🔥</span><span><b>${streakNow(p)}</b><small>أيام متتالية</small></span></div>
       <div class="kpi"><span class="ic">⭐</span><span><b>${p.xp}</b><small>مجموع XP</small></span></div>
       <div class="kpi"><span class="ic">📗</span><span><b>${doneN}/${LESSONS.length}</b><small>دروس مكتملة</small></span></div>
-      <div class="kpi"><span class="ic">📚</span><span><b>${Object.keys(p.srs).length}</b><small>كلمات تعلّمتها</small></span></div></div>
+      <div class="kpi"><span class="ic">📚</span><span><b>${Object.keys(p.srs).filter(isWordKey).length}</b><small>كلمات تعلّمتها</small></span></div>
+      <div class="kpi"><span class="ic">🏆</span><span><b>${Object.keys(p.passed).length}/${NU}</b><small>وحدات ناجحة</small></span></div>
+      <div class="kpi"><span class="ic">🧠</span><span><b>${dueKeys(p).length}</b><small>مستحق للمراجعة</small></span></div></div>
     <h3 class="sec-h">آخر 7 أيام</h3><div class="card"><div class="week">${days.map((d, i) => { const [y, m, dd] = d.split('-').map(Number); return `<div class="d ${i === 6 ? 'today' : ''}"><span class="v">${vals[i] || ''}</span><div class="bar ${vals[i] ? '' : 'zero'}" style="height:${vals[i] / mx * 100}%"></div><small>${DN[new Date(y, m - 1, dd).getDay()]}</small></div>`; }).join('')}</div></div>
     <h3 class="sec-h">الشارات (${p.badges.length}/${BADGES.length})</h3><div class="badges">${BADGES.map(b => `<div class="badge ${p.badges.includes(b.id) ? '' : 'off'}"><div class="ic">${b.i}</div><b>${b.t}</b><small>${b.d}</small></div>`).join('')}</div>
     <h3 class="sec-h">الإعدادات</h3><div class="card">
       <div class="set-row"><span><b>الهدف اليومي</b><small>${p.goal} XP</small></span><div class="seg">${GOALS.map(g => `<button class="${p.goal === g[0] ? 'on' : ''}" data-goal="${g[0]}">${g[1]}</button>`).join('')}</div></div>
-      <div class="set-row"><span><b>قلوب غير محدودة</b><small>مناسب للأطفال والمبتدئين جداً</small></span><button class="sw ${p.settings.unlimited ? 'on' : ''}" data-tg="unlimited" aria-label="قلوب غير محدودة"></button></div>
-      <div class="set-row"><span><b>تمارين النطق بالميكروفون</b><small>${IN_CLAUDE ? 'متاح في نسخة الملف، وغير متاح داخل رابط claude.ai' : SR ? 'مدعوم في هذا المتصفح' : 'غير مدعوم في هذا المتصفح'}</small></span><button class="sw ${p.settings.mic ? 'on' : ''}" data-tg="mic" aria-label="الميكروفون"></button></div>
+      <div class="set-row"><span><b>تمارين النطق بالميكروفون</b><small>${IN_CLAUDE ? 'غير متاح داخل رابط المعاينة، فيتحول التمرين إلى كتابة' : SR ? 'يحتاج إنترنت، وبدونه يتحول التمرين إلى كتابة' : 'غير مدعوم في هذا المتصفح، فيتحول التمرين إلى كتابة'}</small></span><button class="sw ${p.settings.mic ? 'on' : ''}" data-tg="mic" aria-label="الميكروفون"></button></div>
+      <div class="set-row"><span><b>قفل ملفي</b><small>${p.pin ? 'مقفل برقم سري' : 'بدون رقم سري'}</small></span><button class="btn ghost sm" data-mypin>${p.pin ? 'إزالة' : 'تعيين'}</button></div>
       <div class="set-row"><span><b>المؤثرات الصوتية</b><small>أصوات الإجابة الصحيحة والخاطئة</small></span><button class="sw ${p.settings.sfx ? 'on' : ''}" data-tg="sfx" aria-label="المؤثرات"></button></div>
       <div class="set-row"><span><b>سرعة النطق</b><small>صوت القارئ الإنجليزي</small></span><div class="seg">${[[0.7, 'بطيء'], [0.9, 'عادي'], [1.05, 'سريع']].map(r => `<button class="${p.settings.rate === r[0] ? 'on' : ''}" data-rate="${r[0]}">${r[1]}</button>`).join('')}</div></div>
       <div class="set-row"><span><b>المظهر</b></span><div class="seg">${[['auto', 'تلقائي'], ['light', 'فاتح'], ['dark', 'داكن']].map(r => `<button class="${p.settings.theme === r[0] ? 'on' : ''}" data-th="${r[0]}">${r[1]}</button>`).join('')}</div></div>
@@ -742,11 +916,12 @@ function tabMe(p, el) {
     </div>
     <h3 class="sec-h">البيانات والعائلة</h3><div class="card">
       <div class="set-row"><span><b>${CLOUD.on ? '☁️ المزامنة مفعّلة' : '💾 حفظ محلي'}</b><small>${CLOUD.on ? 'تقدّم العائلة محفوظ في حسابك ويظهر على أي جهاز تفتح منه الرابط' : 'للعمل على أكثر من جهاز: افتح التطبيق من رابط claude.ai، أو انقل النسخة الاحتياطية'}</small></span></div>
-      <div class="set-row"><span><b>تبديل الملف</b><small>${DB.profiles.length} ملف على هذا الجهاز</small></span><button class="btn ghost sm" data-sw>تبديل</button></div>
+      <div class="set-row"><span><b>تبديل الملف</b><small>${DB.profiles.length} ملف في ${esc(DB.family ? DB.family.name : 'العائلة')}</small></span><button class="btn ghost sm" data-sw>تبديل</button></div>
+      <div class="set-row"><span><b>رقم ولي الأمر</b><small>${DB.family && DB.family.pin ? 'مفعّل: يحمي الإضافة والحذف والاستيراد' : 'غير مفعّل'}</small></span><button class="btn ghost sm" data-fpin>${DB.family && DB.family.pin ? 'تغيير' : 'تعيين'}</button></div>
       <div class="set-row"><span><b>نسخة احتياطية</b><small>احفظ تقدّم العائلة كاملاً في ملف</small></span><button class="btn ghost sm" data-ex>تصدير</button></div>
       <div class="set-row"><span><b>استعادة / نقل لجهاز آخر</b><small>من ملف نسخة احتياطية</small></span><button class="btn ghost sm" data-im>استيراد</button></div>
       <div class="set-row"><span><b style="color:var(--bad)">حذف هذا الملف</b><small>لا يمكن التراجع</small></span><button class="btn ghost sm" data-del style="color:var(--bad)">حذف</button></div>
-    </div><p class="muted" style="text-align:center;font-size:12px;margin-top:20px">لِسان · الإصدار 1.0 · يعمل دون إنترنت بعد التثبيت</p>`;
+    </div><p class="muted" style="text-align:center;font-size:12px;margin-top:20px">لِسان · الإصدار <span class="en">2.0</span> · يعمل دون إنترنت بعد التثبيت</p>`;
   const rer = () => { save(); applyTheme(); scrHome(); };
   $$('[data-goal]', el).forEach(b => b.onclick = () => { p.goal = +b.dataset.goal; rer(); });
   $$('[data-tg]', el).forEach(b => b.onclick = () => { const k = b.dataset.tg; p.settings[k] = !p.settings[k]; rer(); });
@@ -755,20 +930,23 @@ function tabMe(p, el) {
   $('[data-pl]', el).onclick = startPlacement;
   $('[data-sw]', el).onclick = () => go('profiles');
   $('[data-ex]', el).onclick = exportData;
-  $('[data-im]', el).onclick = importData;
-  $('[data-del]', el).onclick = () => confirmBox(`حذف ملف «${esc(p.name)}» وكل تقدّمه نهائياً؟`, () => { DB.profiles = DB.profiles.filter(x => x.id !== p.id); DB.current = null; save(); go('profiles'); }, 'حذف نهائي');
+  $('[data-im]', el).onclick = () => parentGate(importData);
+  $('[data-del]', el).onclick = () => parentGate(() => confirmBox(`حذف ملف «${esc(p.name)}» وكل تقدّمه نهائياً؟`, () => { DB.profiles = DB.profiles.filter(x => x.id !== p.id); DB.current = null; save(); go('profiles'); }, 'حذف نهائي'));
+  $('[data-mypin]', el).onclick = () => { if (p.pin) { p.pin = null; rer(); toast('أُزيل القفل'); } else pinPad('رقم سري لملفك', v => { p.pin = hashPin(v); rer(); toast('🔒 تم قفل الملف'); }); };
+  $('[data-fpin]', el).onclick = () => parentGate(() => pinPad('رقم ولي الأمر الجديد', v => { DB.family.pin = hashPin(v); rer(); toast('🔐 تم تعيين رقم ولي الأمر'); }));
   $('[data-ren]', el).onclick = () => sheet(`<h3>تعديل الملف</h3><input class="inp" id="rn" maxlength="20" value="${esc(p.name)}" style="margin:14px 0"><div class="av-grid">${AVATARS.map(a => `<button class="${a === p.avatar ? 'sel' : ''}" data-av="${a}">${a}</button>`).join('')}</div><button class="btn" data-sv>حفظ</button>`, (s, close) => {
     let av = p.avatar; $$('[data-av]', s).forEach(b => b.onclick = () => { av = b.dataset.av; $$('[data-av]', s).forEach(x => x.classList.toggle('sel', x === b)); });
     $('[data-sv]', s).onclick = () => { const n = $('#rn', s).value.trim(); if (n) p.name = n; p.avatar = av; close(); rer(); };
   });
 }
 async function exportData() {
+  const events = await Store.events();
+  const json = JSON.stringify({ app: 'lisan', v: 2, exported: new Date().toISOString(), data: DB, events });
   if (IN_CLAUDE) {
-    const json = JSON.stringify({ app: 'lisan', v: 1, exported: new Date().toISOString(), data: DB }, null, 1);
     try { const dl = await window.claude.use('downloads'); if (dl) { await dl.save({ filename: `lisan-backup-${today()}.json`, data: json }); toast('✅ تم حفظ النسخة الاحتياطية'); return; } } catch (e) { return; }
     return toast(CLOUD.on ? 'تقدّمك محفوظ تلقائياً في حسابك' : 'التصدير غير متاح هنا');
   }
-  const blob = new Blob([JSON.stringify({ app: 'lisan', v: 1, exported: new Date().toISOString(), data: DB }, null, 1)], { type: 'application/json' });
+  const blob = new Blob([json], { type: 'application/json' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `lisan-backup-${today()}.json`; document.body.appendChild(a); a.click();
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); toast('✅ تم حفظ النسخة الاحتياطية');
 }
@@ -776,7 +954,7 @@ function importData() {
   const i = document.createElement('input'); i.type = 'file'; i.accept = 'application/json,.json';
   i.onchange = () => { const f = i.files[0]; if (!f) return; const r = new FileReader();
     r.onload = () => { try { const j = JSON.parse(r.result); const d = j.data || j; if (!d || !Array.isArray(d.profiles)) throw 0;
-      confirmBox(`استيراد ${d.profiles.length} ملف؟ سيُستبدل كل ما على هذا الجهاز.`, () => { d.profiles.forEach(fixProfile); DB = d; DB.current = null; save(); toast('✅ تمت الاستعادة'); go('profiles'); }, 'استيراد');
+      confirmBox(`استيراد ${d.profiles.length} ملف؟ سيُستبدل كل ما على هذا الجهاز.`, async () => { DB = d; fixDB(); DB.current = null; save(); if (j.events) await Store.importEvents(j.events); toast('✅ تمت الاستعادة'); go('profiles'); }, 'استيراد');
     } catch (e) { toast('❌ الملف غير صالح'); } };
     r.readAsText(f); };
   i.click();
@@ -788,10 +966,16 @@ function go(scr, arg) {
   if (scr === 'profiles') return scrProfiles();
   if (scr === 'home') return P() ? scrHome(arg) : scrProfiles();
 }
-window.__lisan = { cur: null, get DB() { return DB; }, LESSONS, go };
+window.__lisan = { cur: null, get DB() { return DB; }, LESSONS, go, Store };
 
-applyTheme();
-go(DB.current && P() ? 'home' : 'profiles');
-cloudInit();
+/* الإقلاع: نقرأ قاعدة البيانات الداخلية، ونأخذ الأحدث بينها وبين النسخة الاحتياطية */
+(async () => {
+  const idb = await Store.init();
+  if (idb && Array.isArray(idb.profiles) && (idb.updated || 0) >= (DB.updated || 0)) { const cur = DB.current; DB = idb; fixDB(); if (cur && DB.profiles.some(p => p.id === cur)) DB.current = cur; }
+  else if (DB.profiles.length) Store.saveState(DB); // ترحيل بيانات الإصدار السابق إلى قاعدة البيانات الداخلية
+  applyTheme();
+  go(DB.current && P() ? 'home' : 'profiles');
+  cloudInit();
+})();
 if (!IN_CLAUDE && 'serviceWorker' in navigator && /^https?:/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => { });
 })();

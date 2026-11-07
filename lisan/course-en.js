@@ -178,81 +178,156 @@ window.LISAN_COURSES.en = {
 
   /* ---------------- الوحدات والدروس ---------------- */
   units: [
-    /* ================= الوحدة 1 ================= */
+    /* ================= الوحدة 1 (الإصدار 2: محتوى خليجي + صياغات بديلة + وحدة نطق) =================
+       صيغة الجملة: [الإنجليزية, العربية, [صياغات صحيحة أخرى]] — وجود المصفوفة الثالثة يفعّل تمرين الترجمة المكتوبة */
     {
       t: "البداية: التحية وفعل be", lvl: "A1", color: "#0E9F7E",
-      d: "عرّف بنفسك وكوّن أولى جملك بثقة.",
+      d: "عرّف بنفسك، وتحدث عن عائلتك، واطرح أسئلتك الأولى.",
       lessons: [
         {
           t: "Greetings", ta: "التحية والتعارف", icon: "👋",
           g: [
-            { t: "التحية حسب الوقت",
-              b: "تتغير التحية في الإنجليزية حسب وقت اليوم، تماماً كما نقول (صباح الخير) و(مساء الخير).<br><i>Hello</i> مناسبة في كل المواقف، و<i>Hi</i> للأصدقاء والمواقف الودية.",
-              ex: [["[Good morning|o]!", "صباح الخير! (حتى الظهر)"], ["[Good evening|o]!", "مساء الخير! (بعد العصر)"], ["[Hi|o], Sara!", "أهلاً يا سارة!"]],
+            { t: "الخطوة 1: التحية حسب الوقت",
+              b: "تتغير التحية في الإنجليزية حسب وقت اليوم، تماماً كما نقول (صباح الخير) و(مساء الخير).<table><tr><th>الوقت</th><th>التحية</th></tr><tr><td>من الفجر حتى الظهر</td><td><i>Good morning</i></td></tr><tr><td>من الظهر حتى العصر</td><td><i>Good afternoon</i></td></tr><tr><td>من المغرب فما بعد</td><td><i>Good evening</i></td></tr><tr><td>في أي وقت</td><td><i>Hello</i> أو <i>Hi</i></td></tr></table>",
+              ex: [["[Good morning|o], teacher!", "صباح الخير يا أستاذ!"], ["[Good evening|o], everyone.", "مساء الخير للجميع."], ["[Hi|o], Noura!", "أهلاً يا نورة!"]],
               n: "⚠️ عبارة Good night ليست تحية لقاء، بل تُقال عند الوداع ليلاً أو قبل النوم." },
-            { t: "قدّم نفسك",
-              b: "للتعريف بنفسك استخدم <i>My name is</i> أو المختصر <i>I'm</i>.<br>بعد التعارف نقول <i>Nice to meet you</i>، والرد: <i>Nice to meet you too</i>.",
-              ex: [["[My name|s] [is|v] [Ali|o].", "اسمي علي."], ["[I'm|s] [Huda|o].", "أنا هدى."], ["Nice to meet you [too|t].", "وأنا أيضاً تشرفت بمعرفتك."]],
-              q: { s: "Nice to ___ you.", o: ["meet", "see", "know"], a: "meet", w: "العبارة الثابتة هي Nice to meet you." } }
+            { t: "الخطوة 2: قدّم نفسك",
+              b: "للتعريف بنفسك لديك طريقتان صحيحتان:<br>• الرسمية: <i>My name is Ahmad.</i><br>• اليومية: <i>I'm Ahmad.</i><br>بعد التعارف نقول <i>Nice to meet you</i>، والرد: <i>Nice to meet you too</i>.",
+              ex: [["[My name|s] [is|v] [Ahmad|o].", "اسمي أحمد."], ["[I'm|s] [Fatma|o].", "أنا فاطمة."], ["Nice to meet you [too|t].", "وأنا أيضاً تشرفت بمعرفتك."]],
+              q: { s: "Nice to ___ you.", o: ["meet", "see", "know"], a: "meet", w: "العبارة الثابتة هي Nice to meet you." } },
+            { t: "الخطوة 3: الوداع والشكر",
+              b: "• للوداع: <i>Goodbye</i> أو <i>Bye</i> أو <i>See you tomorrow</i><br>• للشكر: <i>Thank you</i> أو <i>Thanks</i><br>• والرد على الشكر: <i>You're welcome</i> (العفو)",
+              ex: [["[Thank you|o] very much.", "شكراً جزيلاً."], ["[You're welcome|o].", "العفو."], ["[See you|v] [tomorrow|t].", "أراك غداً."]],
+              q: { s: "Thank you! — You're ___.", o: ["welcome", "welcomed", "well"], a: "welcome", w: "الرد الصحيح على الشكر: You're welcome." } }
           ],
-          vocab: [["hello", "مرحباً"], ["goodbye", "مع السلامة"], ["good morning", "صباح الخير"], ["good evening", "مساء الخير"], ["thank you", "شكراً"], ["please", "من فضلك"], ["name", "اسم"], ["friend", "صديق"]],
-          sentences: [["Hello, my name is Ali.", "مرحباً، اسمي علي."], ["Nice to meet you.", "تشرفت بمعرفتك."], ["Good morning, Sara.", "صباح الخير يا سارة."], ["Thank you very much.", "شكراً جزيلاً."], ["See you tomorrow.", "أراك غداً."]],
-          blanks: [["Good {morning}, Mr. Ahmad.", ["morning", "night", "name"], "صباح الخير يا أستاذ أحمد.", "Good night ليست تحية لقاء."], ["My {name} is Huda.", ["name", "friend", "hello"], "اسمي هدى."], ["Nice to {meet} you.", ["meet", "see", "thank"], "تشرفت بمعرفتك."], ["Thank {you} very much!", ["you", "me", "please"], "شكراً جزيلاً!"]]
+          vocab: [["hello", "مرحباً"], ["goodbye", "مع السلامة"], ["good morning", "صباح الخير"], ["good evening", "مساء الخير"], ["thank you", "شكراً"], ["please", "من فضلك"], ["name", "اسم"], ["friend", "صديق"], ["teacher", "معلم"], ["tomorrow", "غداً"]],
+          sentences: [
+            ["Hello, my name is Ahmad.", "مرحباً، اسمي أحمد.", ["Hello, I am Ahmad.", "Hi, my name is Ahmad.", "Hi, I am Ahmad.", "Hello, I'm Ahmad.", "Hi, I'm Ahmad."]],
+            ["Nice to meet you.", "تشرفت بمعرفتك.", ["Nice to meet you too.", "Pleased to meet you."]],
+            ["Good morning, teacher.", "صباح الخير يا أستاذ.", ["Good morning teacher."]],
+            ["Thank you very much.", "شكراً جزيلاً.", ["Thanks a lot.", "Thank you so much.", "Many thanks."]],
+            ["See you tomorrow.", "أراك غداً.", ["See you tomorrow!"]],
+            ["Good evening, everyone.", "مساء الخير للجميع.", ["Good evening everyone."]],
+            ["You're welcome.", "العفو.", ["You are welcome."]]
+          ],
+          blanks: [["Good {morning}, Mr. Ahmad.", ["morning", "night", "name"], "صباح الخير يا أستاذ أحمد.", "Good night ليست تحية لقاء."], ["My {name} is Noura.", ["name", "friend", "hello"], "اسمي نورة."], ["Nice to {meet} you.", ["meet", "see", "thank"], "تشرفت بمعرفتك."], ["Thank {you} very much!", ["you", "me", "please"], "شكراً جزيلاً!"], ["See you {tomorrow}.", ["tomorrow", "yesterday", "please"], "أراك غداً.", "yesterday تعني أمس، ولا تناسب الوداع."]]
         },
         {
           t: "I am / You are", ta: "أنا وأنت: فعل be", icon: "🙋",
           g: [
-            { t: "فعل الكينونة be",
-              b: "في العربية نقول (أنا مهندس) بلا فعل. أما في الإنجليزية <b>فلا تكتمل الجملة دون فعل be</b>، ومعناه هنا (يكون).<table><tr><th>الفاعل</th><th>be</th></tr><tr><td><i>I</i> أنا</td><td><i>am</i></td></tr><tr><td><i>you</i> أنت / أنتم</td><td><i>are</i></td></tr><tr><td><i>we</i> نحن</td><td><i>are</i></td></tr><tr><td><i>they</i> هم</td><td><i>are</i></td></tr></table>",
+            { t: "الخطوة 1: لماذا نحتاج فعل be؟",
+              b: "في العربية نقول (أنا مهندس) بلا فعل. أما في الإنجليزية <b>فلا تكتمل الجملة دون فعل be</b>، ومعناه هنا (يكون).<br>❌ <i>I engineer.</i><br>✅ <i>I am an engineer.</i>",
               f: [["الفاعل", "s"], ["am / are", "v"], ["التكملة", "o"]],
-              ex: [["[I|s] [am|v] [an engineer|o].", "أنا مهندس."], ["[You|s] [are|v] [my friend|o].", "أنت صديقي."], ["[They|s] [are|v] [ready|o].", "هم جاهزون."]],
+              ex: [["[I|s] [am|v] [an engineer|o].", "أنا مهندس."], ["[You|s] [are|v] [my friend|o].", "أنت صديقي."]] },
+            { t: "الخطوة 2: اختر الشكل المناسب",
+              b: "يتغير فعل be حسب الفاعل:<table><tr><th>الفاعل</th><th>be</th></tr><tr><td><i>I</i> أنا</td><td><i>am</i></td></tr><tr><td><i>you</i> أنت / أنتم</td><td><i>are</i></td></tr><tr><td><i>we</i> نحن</td><td><i>are</i></td></tr><tr><td><i>they</i> هم</td><td><i>are</i></td></tr></table>",
+              ex: [["[We|s] [are|v] [students|o].", "نحن طلاب."], ["[They|s] [are|v] [ready|o].", "هم جاهزون."]],
               q: { s: "We ___ students.", o: ["are", "am", "is"], a: "are", w: "مع we نستخدم are." } },
-            { t: "الاختصار في الكلام",
-              b: "في الحديث اليومي ندمج الفاعل مع be بفاصلة علوية:<br><i>I am → I'm</i> · <i>you are → you're</i><br><i>we are → we're</i> · <i>they are → they're</i>",
-              ex: [["[I'm|s] [tired|o] [today|t].", "أنا متعب اليوم."], ["[We're|s] [here|o].", "نحن هنا."]] },
-            { t: "a أم an؟",
-              b: "قبل المهنة أو الاسم المفرد نضع <i>a</i> (بمعنى: واحد). وإذا بدأت الكلمة <b>بصوت متحرك</b> (a, e, i, o, u) نستخدم <i>an</i> لتسهيل النطق.",
+            { t: "الخطوة 3: الاختصار",
+              b: "في الحديث اليومي ندمج الفاعل مع be:<br><i>I am → I'm</i> · <i>you are → you're</i><br><i>we are → we're</i> · <i>they are → they're</i><br>والشكلان صحيحان ويقبلهما التطبيق.",
+              ex: [["[I'm|s] [tired|o] [today|t].", "أنا متعب اليوم."], ["[We're|s] [in Kuwait|o].", "نحن في الكويت."]] },
+            { t: "الخطوة 4: a أم an؟",
+              b: "قبل المهنة نضع <i>a</i> (بمعنى: واحد). وإذا بدأت الكلمة <b>بصوت متحرك</b> نستخدم <i>an</i>:<br><i>a doctor</i> · <i>a teacher</i> · <i>an engineer</i> · <i>an architect</i>",
               ex: [["I am [a|x] [doctor|o].", "أنا طبيب."], ["I am [an|x] [engineer|o].", "أنا مهندس."]],
               q: { s: "I am ___ engineer.", o: ["an", "a"], a: "an", w: "engineer تبدأ بصوت متحرك (e)." } }
           ],
-          vocab: [["engineer", "مهندس"], ["teacher", "معلم"], ["student", "طالب"], ["doctor", "طبيب"], ["happy", "سعيد"], ["tired", "متعب"], ["ready", "جاهز"], ["here", "هنا"]],
-          sentences: [["I am an engineer.", "أنا مهندس."], ["You are a good student.", "أنت طالب جيد."], ["We are ready.", "نحن جاهزون."], ["They are doctors.", "هم أطباء."], ["I'm tired today.", "أنا متعب اليوم."]],
-          blanks: [["I {am} a teacher.", ["am", "is", "are"], "أنا معلم.", "مع I نستخدم am دائماً."], ["You {are} my friend.", ["are", "am", "is"], "أنت صديقي.", "مع you نستخدم are."], ["We {are} here.", ["are", "is", "am"], "نحن هنا."], ["I am {an} engineer.", ["an", "a", "the"], "أنا مهندس.", "engineer تبدأ بصوت متحرك فنستخدم an."]]
+          vocab: [["engineer", "مهندس"], ["doctor", "طبيب"], ["student", "طالب"], ["nurse", "ممرض"], ["happy", "سعيد"], ["tired", "متعب"], ["ready", "جاهز"], ["here", "هنا"], ["today", "اليوم"], ["school", "مدرسة"]],
+          sentences: [
+            ["I am an engineer.", "أنا مهندس.", ["I'm an engineer."]],
+            ["You are a good student.", "أنت طالب جيد.", ["You're a good student."]],
+            ["We are ready.", "نحن جاهزون.", ["We're ready."]],
+            ["They are doctors.", "هم أطباء.", ["They're doctors."]],
+            ["I'm tired today.", "أنا متعب اليوم.", ["I am tired today.", "Today I am tired.", "Today I'm tired."]],
+            ["We are in Kuwait.", "نحن في الكويت.", ["We're in Kuwait."]],
+            ["You are at school.", "أنت في المدرسة.", ["You're at school.", "You are in school."]]
+          ],
+          blanks: [["I {am} a teacher.", ["am", "is", "are"], "أنا معلم.", "مع I نستخدم am دائماً."], ["You {are} my friend.", ["are", "am", "is"], "أنت صديقي.", "مع you نستخدم are."], ["We {are} here.", ["are", "is", "am"], "نحن هنا."], ["I am {an} engineer.", ["an", "a", "the"], "أنا مهندس.", "engineer تبدأ بصوت متحرك."], ["They {are} nurses.", ["are", "is", "am"], "هم ممرضون."]]
         },
         {
           t: "He / She / It is", ta: "هو وهي: is", icon: "👨‍👩‍👧",
           g: [
-            { t: "هو، هي، والأشياء",
-              b: "للمفرد الغائب نستخدم <i>is</i> دائماً:<br>• <i>he</i> = هو (للمذكر)<br>• <i>she</i> = هي (للمؤنث)<br>• <i>it</i> = للأشياء والحيوانات<br>⚠️ في العربية نقول عن السيارة (هي)، لكن في الإنجليزية نقول <i>it</i> لأنها ليست إنساناً.",
-              f: [["he / she / it", "s"], ["is", "v"], ["التكملة", "o"]],
-              ex: [["[He|s] [is|v] [my brother|o].", "هو أخي."], ["[She|s] [is|v] [a doctor|o].", "هي طبيبة."], ["[The car|s] [is|v] [new|o]. [It|s] [is|v] [fast|o].", "السيارة جديدة. إنها سريعة."]],
+            { t: "الخطوة 1: هو وهي",
+              b: "للشخص الغائب المفرد نستخدم <i>is</i> دائماً:<br>• <i>he</i> = هو (للمذكر)<br>• <i>she</i> = هي (للمؤنث)",
+              f: [["he / she", "s"], ["is", "v"], ["التكملة", "o"]],
+              ex: [["[He|s] [is|v] [my brother|o].", "هو أخي."], ["[She|s] [is|v] [a doctor|o].", "هي طبيبة."]] },
+            { t: "الخطوة 2: الأشياء = it",
+              b: "• <i>it</i> = للأشياء والحيوانات<br>⚠️ في العربية نقول عن السيارة (هي) وعن البيت (هو)، لكن في الإنجليزية نقول <i>it</i> لكليهما لأنهما ليسا إنساناً.",
+              ex: [["[The car|s] [is|v] [new|o]. [It|s] [is|v] [fast|o].", "السيارة جديدة. إنها سريعة."], ["[It|s] [is|v] [hot|o] [today|t].", "الجو حار اليوم."]],
               q: { s: "My house is big. ___ is new.", o: ["It", "He", "She"], a: "It", w: "البيت شيء، فنستخدم It." } },
-            { t: "الجدول الكامل لفعل be",
+            { t: "الخطوة 3: الجدول الكامل",
               b: "<table><tr><th>الفاعل</th><th>be</th><th>المختصر</th></tr><tr><td><i>I</i></td><td><i>am</i></td><td><i>I'm</i></td></tr><tr><td><i>he / she / it</i></td><td><i>is</i></td><td><i>he's / she's / it's</i></td></tr><tr><td><i>you / we / they</i></td><td><i>are</i></td><td><i>you're / we're / they're</i></td></tr></table>",
-              ex: [["[It's|s] [a big house|o].", "إنه بيت كبير."], ["[My mother|s] [is|v] [at home|o].", "أمي في البيت."]],
-              q: { s: "My mother ___ a teacher.", o: ["is", "are", "am"], a: "is", w: "my mother = she، فنستخدم is." } }
+              ex: [["[My mother|s] [is|v] [at home|o].", "أمي في البيت."]],
+              q: { s: "My mother ___ a teacher.", o: ["is", "are", "am"], a: "is", w: "أمي = هي، فنستخدم is." } }
           ],
-          vocab: [["brother", "أخ"], ["sister", "أخت"], ["father", "أب"], ["mother", "أم"], ["car", "سيارة"], ["house", "بيت"], ["big", "كبير"], ["small", "صغير"]],
-          sentences: [["He is my brother.", "هو أخي."], ["She is a doctor.", "هي طبيبة."], ["It is a big house.", "إنه بيت كبير."], ["My mother is at home.", "أمي في البيت."], ["The car is small.", "السيارة صغيرة."]],
-          blanks: [["She {is} my sister.", ["is", "are", "am"], "هي أختي."], ["{He} is my father.", ["He", "She", "It"], "هو أبي.", "father مذكر، فنستخدم He."], ["The house is big. {It} is new.", ["It", "He", "She"], "البيت كبير. إنه جديد.", "البيت شيء، فنستخدم It."], ["My father {is} an engineer.", ["is", "are", "am"], "أبي مهندس."]]
+          vocab: [["brother", "أخ"], ["sister", "أخت"], ["father", "أب"], ["mother", "أم"], ["car", "سيارة"], ["house", "بيت"], ["big", "كبير"], ["small", "صغير"], ["hot", "حار"], ["new", "جديد"]],
+          sentences: [
+            ["He is my brother.", "هو أخي.", ["He's my brother."]],
+            ["She is a doctor.", "هي طبيبة.", ["She's a doctor."]],
+            ["It is a big house.", "إنه بيت كبير.", ["It's a big house."]],
+            ["My mother is at home.", "أمي في البيت.", ["My mom is at home.", "My mother is home."]],
+            ["The car is small.", "السيارة صغيرة.", ["The car's small."]],
+            ["It is hot today.", "الجو حار اليوم.", ["It's hot today.", "Today it is hot.", "Today it's hot."]],
+            ["My sister is in Salmiya.", "أختي في السالمية.", ["My sister's in Salmiya."]]
+          ],
+          blanks: [["She {is} my sister.", ["is", "are", "am"], "هي أختي."], ["{He} is my father.", ["He", "She", "It"], "هو أبي.", "father مذكر، فنستخدم He."], ["The house is big. {It} is new.", ["It", "He", "She"], "البيت كبير. إنه جديد.", "البيت شيء، فنستخدم It."], ["My father {is} an engineer.", ["is", "are", "am"], "أبي مهندس."], ["{It} is hot in Kuwait.", ["It", "He", "She"], "الجو حار في الكويت.", "للطقس نستخدم It دائماً."]]
         },
         {
           t: "Negatives & Questions", ta: "النفي والسؤال مع be", icon: "❓",
           g: [
-            { t: "النفي: أضف not",
+            { t: "الخطوة 1: النفي بإضافة not",
               b: "لنفي جملة be نضع <i>not</i> بعد am / is / are مباشرة.<br>الاختصارات: <i>is not → isn't</i> · <i>are not → aren't</i> · <i>I am not → I'm not</i>",
               f: [["الفاعل", "s"], ["am / is / are", "v"], ["not", "x"], ["التكملة", "o"]],
-              ex: [["[I|s] [am|v] [not|x] [busy|o].", "لست مشغولاً."], ["[She|s] [isn't|x] [late|o].", "هي ليست متأخرة."], ["[We|s] [aren't|x] [ready|o].", "لسنا جاهزين."]],
+              ex: [["[I|s] [am|v] [not|x] [busy|o].", "لست مشغولاً."], ["[She|s] [isn't|x] [late|o].", "هي ليست متأخرة."]],
               q: { s: "He ___ at home.", o: ["isn't", "aren't", "not"], a: "isn't", w: "he مع is، ونفيها isn't." } },
-            { t: "السؤال: اقلب الترتيب",
-              b: "لا توجد كلمة (هل) في الإنجليزية؛ بل <b>نقدّم فعل be على الفاعل</b>:<br><i>You are ready.</i> ← <i>Are you ready?</i><br>والإجابة القصيرة: <i>Yes, I am.</i> / <i>No, I'm not.</i>",
+            { t: "الخطوة 2: السؤال بقلب الترتيب",
+              b: "لا توجد كلمة (هل) في الإنجليزية؛ بل <b>نقدّم فعل be على الفاعل</b>:<br><i>You are ready.</i> ← <i>Are you ready?</i>",
               f: [["Am / Is / Are", "v"], ["الفاعل", "s"], ["التكملة", "o"], ["؟", "x"]],
-              ex: [["[Are|v] [you|s] [hungry|o]?", "هل أنت جائع؟"], ["[Is|v] [she|s] [married|o]?", "هل هي متزوجة؟"], ["[Where|q] [are|v] [you|s] from?", "من أين أنت؟"]],
-              q: { s: "___ you from Kuwait?", o: ["Are", "Is", "Do"], a: "Are", w: "you مع are، ونقدّمها للسؤال." } }
+              ex: [["[Are|v] [you|s] [hungry|o]?", "هل أنت جائع؟"], ["[Is|v] [she|s] [at school|o]?", "هل هي في المدرسة؟"]],
+              q: { s: "___ you from Kuwait?", o: ["Are", "Is", "Do"], a: "Are", w: "you مع are، ونقدّمها للسؤال." } },
+            { t: "الخطوة 3: الإجابة القصيرة وسؤال أين",
+              b: "• الإجابة القصيرة: <i>Yes, I am.</i> / <i>No, I'm not.</i> / <i>Yes, she is.</i><br>• للسؤال عن المكان نبدأ بـ <i>Where</i>: <i>Where are you from?</i>",
+              ex: [["[Where|q] [are|v] [you|s] from?", "من أين أنت؟"], ["Yes, [I|s] [am|v].", "نعم، أنا كذلك."]] }
           ],
-          vocab: [["busy", "مشغول"], ["hungry", "جائع"], ["late", "متأخر"], ["married", "متزوج"], ["where", "أين"], ["from", "من (مكان)"], ["yes", "نعم"], ["no", "لا"]],
-          sentences: [["I am not busy.", "لست مشغولاً."], ["Are you hungry?", "هل أنت جائع؟"], ["She isn't late.", "هي ليست متأخرة."], ["Where are you from?", "من أين أنت؟"], ["I am from Kuwait.", "أنا من الكويت."]],
-          blanks: [["{Are} you ready?", ["Are", "Is", "Am"], "هل أنت جاهز؟"], ["He {isn't} at home.", ["isn't", "aren't", "am not"], "ليس في البيت."], ["{Is} she married?", ["Is", "Are", "Am"], "هل هي متزوجة؟"], ["We {aren't} late.", ["aren't", "isn't", "am not"], "لسنا متأخرين."]]
+          vocab: [["busy", "مشغول"], ["hungry", "جائع"], ["late", "متأخر"], ["where", "أين"], ["from", "من (مكان)"], ["yes", "نعم"], ["no", "لا"], ["office", "مكتب"], ["mall", "مجمع تجاري"], ["near", "قريب"]],
+          sentences: [
+            ["I am not busy.", "لست مشغولاً.", ["I'm not busy."]],
+            ["Are you hungry?", "هل أنت جائع؟", []],
+            ["She isn't late.", "هي ليست متأخرة.", ["She is not late.", "She's not late."]],
+            ["Where are you from?", "من أين أنت؟", []],
+            ["I am from Kuwait.", "أنا من الكويت.", ["I'm from Kuwait."]],
+            ["Is the mall near?", "هل المجمع قريب؟", ["Is the mall close?"]],
+            ["He is not at the office.", "هو ليس في المكتب.", ["He isn't at the office.", "He's not at the office.", "He is not in the office.", "He isn't in the office."]]
+          ],
+          blanks: [["{Are} you ready?", ["Are", "Is", "Am"], "هل أنت جاهز؟"], ["He {isn't} at home.", ["isn't", "aren't", "am not"], "ليس في البيت."], ["{Is} she at school?", ["Is", "Are", "Am"], "هل هي في المدرسة؟"], ["We {aren't} late.", ["aren't", "isn't", "am not"], "لسنا متأخرين."], ["{Where} are you from?", ["Where", "What", "Who"], "من أين أنت؟", "Where للسؤال عن المكان."]]
+        },
+        {
+          t: "Sounds: P and B", ta: "النطق: p و b", icon: "🗣️",
+          g: [
+            { t: "الخطوة 1: لماذا يصعب حرف p؟",
+              b: "لا يوجد صوت <i>p</i> في العربية، لذلك ينطقه كثيرون مثل <i>b</i>، فتصبح <i>park</i> (موقف سيارات) مثل <i>bark</i> (نباح)!<br>الفرق في المعنى كبير، فلنتدرّب عليه.",
+              ex: [["[park|o] · [bark|v]", "موقف سيارات · نباح"], ["[pen|o] · [Ben|v]", "قلم · اسم بن"]] },
+            { t: "الخطوة 2: طريقة النطق الصحيحة",
+              b: "• <i>b</i> = مثل حرف الباء العربي، والحنجرة <b>تهتز</b>.<br>• <i>p</i> = أغلق شفتيك مثل الباء، ثم <b>أطلق دفعة هواء قوية</b> بلا اهتزاز في الحنجرة.<br>💡 <b>تجربة الورقة:</b> ضع ورقة أمام فمك وقل <i>pen</i>، فيجب أن تتحرك الورقة. ومع <i>Ben</i> لا تتحرك.",
+              ex: [["[pin|o] · [bin|v]", "دبوس · سلة مهملات"], ["[pie|o] · [buy|v]", "فطيرة · يشتري"]],
+              n: "اضغط زر السماعة 🔊 مرات عدة، ثم انطق بعده. الدفعة الهوائية في p هي كل السر." },
+            { t: "الخطوة 3: في الجمل",
+              b: "تدرّب على جمل تجمع الصوتين معاً، وانتبه لكل p.",
+              ex: [["[Please|o] [pass|o] the [paper|o].", "ناولني الورقة من فضلك."], ["[Ben|v] has a [blue|v] [pen|o].", "لدى بن قلم أزرق."]],
+              q: { s: "I write with a ___.", o: ["pen", "Ben"], a: "pen", w: "pen = قلم، وBen اسم شخص." } }
+          ],
+          vocab: [["pen", "قلم"], ["park", "موقف / حديقة"], ["paper", "ورقة"], ["bag", "حقيبة"], ["bus", "حافلة"], ["pay", "يدفع"], ["blue", "أزرق"], ["pin", "دبوس"], ["bin", "سلة مهملات"], ["people", "ناس"]],
+          pairs: [["park", "bark", "موقف سيارات", "نباح"], ["pen", "Ben", "قلم", "اسم شخص"], ["pin", "bin", "دبوس", "سلة مهملات"], ["pie", "buy", "فطيرة", "يشتري"], ["pay", "bay", "يدفع", "خليج صغير"], ["cap", "cab", "قبعة", "سيارة أجرة"], ["pill", "bill", "حبة دواء", "فاتورة"], ["pack", "back", "يحزم", "ظهر / خلف"]],
+          speak: [["Please pass the paper.", "ناولني الورقة من فضلك."], ["People park near the beach.", "يوقف الناس سياراتهم قرب الشاطئ."], ["I pay for the bus.", "أدفع أجرة الحافلة."]],
+          sentences: [
+            ["Please pass the paper.", "ناولني الورقة من فضلك.", ["Pass the paper, please.", "Please pass me the paper.", "Pass me the paper, please."]],
+            ["The bus is big.", "الحافلة كبيرة.", []],
+            ["Ben has a blue pen.", "لدى بن قلم أزرق.", []],
+            ["I pay for the bus.", "أدفع أجرة الحافلة.", []],
+            ["Put the paper in the bin.", "ضع الورقة في سلة المهملات.", ["Put the paper into the bin."]],
+            ["People park near the beach.", "يوقف الناس سياراتهم قرب الشاطئ.", []],
+            ["My bag is blue.", "حقيبتي زرقاء.", ["My bag's blue."]]
+          ],
+          blanks: [["I write with a {pen}.", ["pen", "Ben", "bin"], "أكتب بقلم.", "pen = قلم."], ["Put it in the {bin}.", ["bin", "pin", "pen"], "ضعه في سلة المهملات.", "bin = سلة المهملات، وpin = دبوس."], ["I {pay} at the shop.", ["pay", "bay", "buy"], "أدفع في المحل.", "pay = يدفع."], ["Where can I {park} the car?", ["park", "bark", "back"], "أين يمكنني إيقاف السيارة؟", "park = يوقف السيارة."], ["The {bus} is late.", ["bus", "boss", "bag"], "الحافلة متأخرة."]]
         }
       ]
     },
