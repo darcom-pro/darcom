@@ -6,14 +6,14 @@ const fs = require('fs'), path = require('path');
 const root = path.join(__dirname, '..');
 const rd = f => fs.readFileSync(path.join(root, f), 'utf8');
 const icon = 'data:image/svg+xml;base64,' + Buffer.from(rd('icon.svg')).toString('base64');
-const css = rd('styles.css'), course = rd('store.js') + '\n' + rd('fsrs.js') + '\n' + rd('course-en.js'), app = rd('app.js').replace(/src="icon\.svg"/g, `src="${icon}"`);
+const css = rd('styles.css'), course = rd('store.js') + '\n' + rd('fsrs.js') + '\n' + rd('course-en.js') + '\n' + rd('gloss-en.js'), app = rd('app.js').replace(/src="icon\.svg"/g, `src="${icon}"`);
 
 let html = rd('index.html')
   .replace(/<link rel="manifest"[^>]*>\n/, '')
   .replace(/<link rel="apple-touch-icon"[^>]*>\n/, '')
   .replace('href="icon.svg"', `href="${icon}"`)
   .replace('<link rel="stylesheet" href="styles.css">', () => `<style>\n${css}\n</style>`)
-  .replace('<script src="store.js"></script>\n', '').replace('<script src="fsrs.js"></script>\n', '')
+  .replace('<script src="store.js"></script>\n', '').replace('<script src="fsrs.js"></script>\n', '').replace('<script src="gloss-en.js"></script>\n', '')
   .replace('<script src="course-en.js"></script>', () => `<script>\n${course}\n</script>`)
   .replace('<script src="app.js"></script>', () => `<script>\n${app}\n</script>`);
 fs.writeFileSync(path.join(root, 'lisan-offline.html'), html);

@@ -374,3 +374,44 @@ textarea.write-inp{resize:none;font-size:20px;line-height:1.5;font-family:"Nunit
 .pin-pad button{height:58px;border-radius:16px;background:var(--soft);font-size:24px;font-weight:800;font-family:"Nunito",sans-serif;border:2px solid var(--line)}
 .pin-pad button:active{transform:translateY(2px)}
 .goal-card .btn.sm{flex:none}
+
+/* ===== الإصدار 2.1: الملاحظات 1–8 ===== */
+#app{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#app input,#app textarea{-webkit-user-select:text;user-select:text}
+/* الترجمة الفورية */
+.gloss{position:fixed;z-index:180;width:min(300px,calc(100vw - 20px));background:var(--card);border:2px solid var(--t-s);border-radius:18px;padding:12px 14px;box-shadow:0 12px 32px rgba(0,0,0,.22);animation:pop .2s}
+.gl-h{display:flex;align-items:center;gap:8px}
+.gl-h b{flex:1;font-size:20px;text-align:left}
+.gl-x{width:32px;height:32px;font-size:16px}
+.gl-ar{font-size:20px;font-weight:700;margin-top:6px}
+.gl-n{font-size:14px;color:var(--muted);margin-top:4px}
+.gl-ex{margin-top:8px;padding:8px 10px;border-radius:12px;background:var(--soft);font-size:14px}
+.gl-ex .en{font-weight:700;text-align:left}
+/* المؤقت */
+.tbar{position:relative;height:8px;margin:0 16px 6px;background:var(--line);border-radius:99px;overflow:visible}
+.tbar i{display:block;height:100%;background:var(--acc);border-radius:99px;transition:width .1s linear}
+.tbar.late i{background:var(--bad)}
+.tbar b{position:absolute;left:0;top:-22px;font-family:"Nunito",sans-serif;font-size:14px;color:var(--muted)}
+.tbar.late b{color:var(--bad)}
+/* راجع إجاباتك */
+.ra-sum{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.ra-sum .btn{margin-inline-start:auto}
+.pill.bad{background:var(--badbg);color:var(--bad)}
+.ra-item{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:10px}
+.ra-item.bad{border-color:color-mix(in srgb,var(--bad) 45%,var(--line))}
+.ra-item.ok{border-color:color-mix(in srgb,var(--pri) 35%,var(--line))}
+.ra-h{font-size:13px;font-weight:700;color:var(--muted);margin-bottom:6px}
+.ra-q{font-size:17px;font-weight:700;margin-bottom:8px}
+.ra-row{display:flex;gap:10px;align-items:baseline;padding:4px 0;border-top:1px dashed var(--line)}
+.ra-row small{flex:0 0 52px;color:var(--muted)}
+.ra-why{font-size:14px;margin-top:6px;color:var(--muted)}
+.w-bad-plain{color:var(--bad);font-weight:800}
+.pl-fb{min-height:28px;margin-top:14px;text-align:center;font-weight:700}
+/* بطاقات */
+.speed-card{display:flex;align-items:center;gap:14px;width:100%;text-align:start;margin-bottom:16px;border:2px solid color-mix(in srgb,var(--acc) 60%,var(--line))}
+.speed-card .ic{font-size:34px}
+.speed-card b{display:block;font-size:17px}
+.speed-card small{color:var(--muted)}
+.welcome-art{font-size:64px;margin:10px 0 4px}
+.ra-row>div,.fb-a,.ra-q{unicode-bidi:plaintext;text-align:start}
+.ra-row>div{flex:1;min-width:0}

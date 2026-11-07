@@ -381,6 +381,47 @@ textarea.write-inp{resize:none;font-size:20px;line-height:1.5;font-family:"Nunit
 .pin-pad button:active{transform:translateY(2px)}
 .goal-card .btn.sm{flex:none}
 
+/* ===== الإصدار 2.1: الملاحظات 1–8 ===== */
+#app{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#app input,#app textarea{-webkit-user-select:text;user-select:text}
+/* الترجمة الفورية */
+.gloss{position:fixed;z-index:180;width:min(300px,calc(100vw - 20px));background:var(--card);border:2px solid var(--t-s);border-radius:18px;padding:12px 14px;box-shadow:0 12px 32px rgba(0,0,0,.22);animation:pop .2s}
+.gl-h{display:flex;align-items:center;gap:8px}
+.gl-h b{flex:1;font-size:20px;text-align:left}
+.gl-x{width:32px;height:32px;font-size:16px}
+.gl-ar{font-size:20px;font-weight:700;margin-top:6px}
+.gl-n{font-size:14px;color:var(--muted);margin-top:4px}
+.gl-ex{margin-top:8px;padding:8px 10px;border-radius:12px;background:var(--soft);font-size:14px}
+.gl-ex .en{font-weight:700;text-align:left}
+/* المؤقت */
+.tbar{position:relative;height:8px;margin:0 16px 6px;background:var(--line);border-radius:99px;overflow:visible}
+.tbar i{display:block;height:100%;background:var(--acc);border-radius:99px;transition:width .1s linear}
+.tbar.late i{background:var(--bad)}
+.tbar b{position:absolute;left:0;top:-22px;font-family:"Nunito",sans-serif;font-size:14px;color:var(--muted)}
+.tbar.late b{color:var(--bad)}
+/* راجع إجاباتك */
+.ra-sum{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.ra-sum .btn{margin-inline-start:auto}
+.pill.bad{background:var(--badbg);color:var(--bad)}
+.ra-item{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:10px}
+.ra-item.bad{border-color:color-mix(in srgb,var(--bad) 45%,var(--line))}
+.ra-item.ok{border-color:color-mix(in srgb,var(--pri) 35%,var(--line))}
+.ra-h{font-size:13px;font-weight:700;color:var(--muted);margin-bottom:6px}
+.ra-q{font-size:17px;font-weight:700;margin-bottom:8px}
+.ra-row{display:flex;gap:10px;align-items:baseline;padding:4px 0;border-top:1px dashed var(--line)}
+.ra-row small{flex:0 0 52px;color:var(--muted)}
+.ra-why{font-size:14px;margin-top:6px;color:var(--muted)}
+.w-bad-plain{color:var(--bad);font-weight:800}
+.pl-fb{min-height:28px;margin-top:14px;text-align:center;font-weight:700}
+/* بطاقات */
+.speed-card{display:flex;align-items:center;gap:14px;width:100%;text-align:start;margin-bottom:16px;border:2px solid color-mix(in srgb,var(--acc) 60%,var(--line))}
+.speed-card .ic{font-size:34px}
+.speed-card b{display:block;font-size:17px}
+.speed-card small{color:var(--muted)}
+.welcome-art{font-size:64px;margin:10px 0 4px}
+.ra-row>div,.fb-a,.ra-q{unicode-bidi:plaintext;text-align:start}
+.ra-row>div{flex:1;min-width:0}
+
 </style>
 <div id="app" dir="rtl" lang="ar"></div>
 <div id="toast" role="status" aria-live="polite"></div>
@@ -529,7 +570,8 @@ window.LISAN_COURSES.en = {
   flag: "🇬🇧",
   voice: "en-US",
 
-  /* ---------------- اختبار تحديد المستوى ---------------- */
+  /* ---------------- اختبار تحديد المستوى: 30 سؤالاً لكل مستوى ----------------
+     الصيغة: [الجملة مع ___, الخيارات, الإجابة الصحيحة] — يُسحب 6 أسئلة عشوائية من كل مستوى مع تجنّب ما ظهر مؤخراً على الجهاز */
   placement: {
     A1: [
       ["I ___ a student.", ["am", "is", "are"], "am"],
@@ -537,7 +579,31 @@ window.LISAN_COURSES.en = {
       ["___ you like coffee?", ["Do", "Does", "Are"], "Do"],
       ["They ___ from Kuwait.", ["are", "is", "am"], "are"],
       ["He ___ in a bank.", ["works", "work", "working"], "works"],
-      ["This is ___ apple.", ["an", "a", "two"], "an"]
+      ["This is ___ apple.", ["an", "a", "two"], "an"],
+      ["My sister ___ a teacher.", ["is", "are", "am"], "is"],
+      ["We ___ at home now.", ["are", "is", "be"], "are"],
+      ["___ is your name?", ["What", "Where", "Who"], "What"],
+      ["I have two ___.", ["children", "childs", "child"], "children"],
+      ["___ book is new. (هذا الكتاب)", ["This", "These", "Those"], "This"],
+      ["She ___ like fish.", ["doesn't", "don't", "isn't"], "doesn't"],
+      ["___ he speak English?", ["Does", "Do", "Is"], "Does"],
+      ["The keys are ___ the table.", ["on", "at", "of"], "on"],
+      ["I wake up ___ 7 o'clock.", ["at", "on", "in"], "at"],
+      ["My father ___ a big car.", ["has", "have", "is"], "has"],
+      ["Ali is my brother. ___ is 12.", ["He", "She", "It"], "He"],
+      ["The house is old. ___ is big.", ["It", "He", "She"], "It"],
+      ["___ are my friends.", ["They", "He", "It"], "They"],
+      ["I ___ not hungry.", ["am", "is", "are"], "am"],
+      ["Where ___ you from?", ["are", "is", "do"], "are"],
+      ["We go to school ___ Sunday.", ["on", "at", "in"], "on"],
+      ["This is Sara. ___ car is red.", ["Her", "His", "She"], "Her"],
+      ["I like ___ new phone. (هاتفي)", ["my", "me", "I"], "my"],
+      ["He ___ TV every evening.", ["watches", "watch", "watchs"], "watches"],
+      ["Two ___, please.", ["boxes", "boxs", "box"], "boxes"],
+      ["___ there a bank near here?", ["Is", "Are", "Do"], "Is"],
+      ["They ___ live in Jahra.", ["don't", "doesn't", "aren't"], "don't"],
+      ["Thank you! — You're ___.", ["welcome", "well", "good"], "welcome"],
+      ["She is ___ engineer.", ["an", "a", "the"], "an"]
     ],
     A2: [
       ["I ___ to Dubai last year.", ["went", "go", "have gone"], "went"],
@@ -545,7 +611,31 @@ window.LISAN_COURSES.en = {
       ["My car is ___ than yours.", ["bigger", "more big", "biggest"], "bigger"],
       ["There ___ two banks on this street.", ["are", "is", "have"], "are"],
       ["Did you ___ the news?", ["see", "saw", "seen"], "see"],
-      ["We ___ going to travel next week.", ["are", "will", "do"], "are"]
+      ["We ___ going to travel next week.", ["are", "will", "do"], "are"],
+      ["She ___ at home yesterday.", ["was", "were", "is"], "was"],
+      ["They ___ in London last month.", ["were", "was", "are"], "were"],
+      ["I didn't ___ him at the party.", ["see", "saw", "seen"], "see"],
+      ["What ___ you do last weekend?", ["did", "do", "were"], "did"],
+      ["He can ___ very fast.", ["swim", "swims", "to swim"], "swim"],
+      ["This is the ___ restaurant in the city.", ["best", "better", "goodest"], "best"],
+      ["Gold is more ___ than silver.", ["expensive", "expensiver", "expensivest"], "expensive"],
+      ["I think it ___ be hot tomorrow.", ["will", "is", "going"], "will"],
+      ["She ___ cooking dinner now.", ["is", "does", "has"], "is"],
+      ["We ___ football yesterday.", ["played", "play", "plays"], "played"],
+      ["He ___ a new phone last week.", ["bought", "buyed", "buys"], "bought"],
+      ["___ you help me, please?", ["Can", "Do", "Are"], "Can"],
+      ["There isn't ___ milk in the fridge.", ["any", "some", "a"], "any"],
+      ["Kuwait is ___ than London in summer.", ["hotter", "hoter", "more hot"], "hotter"],
+      ["I'm ___ to visit my uncle tomorrow.", ["going", "go", "will"], "going"],
+      ["She ___ TV when I called her.", ["was watching", "watched", "watches"], "was watching"],
+      ["How ___ apples do you want?", ["many", "much", "more"], "many"],
+      ["How ___ is this bag?", ["much", "many", "long"], "much"],
+      ["He is the ___ in the family.", ["youngest", "younger", "most young"], "youngest"],
+      ["The meeting ___ at 9 tomorrow.", ["starts", "start", "starting"], "starts"],
+      ["We ___ late for the bus yesterday.", ["were", "was", "are"], "were"],
+      ["The cat is ___ the chair.", ["under", "between", "next"], "under"],
+      ["I ___ my keys. I can't find them.", ["lost", "lose", "losed"], "lost"],
+      ["You ___ wear a helmet here.", ["must", "can't", "don't"], "must"]
     ],
     B1: [
       ["I have lived here ___ 2015.", ["since", "for", "from"], "since"],
@@ -553,7 +643,31 @@ window.LISAN_COURSES.en = {
       ["She ___ already finished her work.", ["has", "have", "is"], "has"],
       ["You ___ smoke in the hospital. It's forbidden.", ["mustn't", "don't have to", "not must"], "mustn't"],
       ["Have you ___ been to Japan?", ["ever", "yet", "already"], "ever"],
-      ["I saw him two days ___ .", ["ago", "before", "since"], "ago"]
+      ["I saw him two days ___ .", ["ago", "before", "since"], "ago"],
+      ["We have known each other ___ ten years.", ["for", "since", "ago"], "for"],
+      ["They haven't arrived ___ .", ["yet", "already", "just"], "yet"],
+      ["I ___ my homework. Can I go out now?", ["have finished", "finish", "am finishing"], "have finished"],
+      ["If you ___ hard, you will pass.", ["study", "will study", "studied"], "study"],
+      ["You ___ see a doctor. You look ill.", ["should", "mustn't", "don't"], "should"],
+      ["You don't ___ to come if you're busy.", ["have", "must", "should"], "have"],
+      ["This bridge ___ in 2010.", ["was built", "built", "is building"], "was built"],
+      ["English ___ in many countries.", ["is spoken", "speaks", "is speaking"], "is spoken"],
+      ["The man ___ lives next door is a doctor.", ["who", "which", "what"], "who"],
+      ["This is the phone ___ I bought yesterday.", ["that", "who", "where"], "that"],
+      ["I'm interested ___ engineering.", ["in", "on", "at"], "in"],
+      ["She's good ___ maths.", ["at", "in", "on"], "at"],
+      ["I enjoy ___ to music.", ["listening", "listen", "to listen"], "listening"],
+      ["He decided ___ a new car.", ["to buy", "buying", "buy"], "to buy"],
+      ["While I ___ , the phone rang.", ["was sleeping", "slept", "sleep"], "was sleeping"],
+      ["I used to ___ in Salmiya when I was a child.", ["live", "living", "lived"], "live"],
+      ["She is ___ intelligent to fail the exam.", ["too", "enough", "very"], "too"],
+      ["He isn't old ___ to drive.", ["enough", "too", "very"], "enough"],
+      ["Unless you hurry, you ___ miss the bus.", ["will", "won't", "would"], "will"],
+      ["How long have you ___ English?", ["been studying", "studied", "study"], "been studying"],
+      ["I'd rather ___ at home tonight.", ["stay", "to stay", "staying"], "stay"],
+      ["The report must ___ by Friday.", ["be finished", "finish", "finished"], "be finished"],
+      ["We ran out ___ water on the trip.", ["of", "from", "with"], "of"],
+      ["She has been working here ___ last May.", ["since", "for", "from"], "since"]
     ],
     B2: [
       ["If I ___ more time, I would learn Japanese.", ["had", "have", "will have"], "had"],
@@ -561,7 +675,31 @@ window.LISAN_COURSES.en = {
       ["She asked me where I ___ .", ["lived", "do I live", "did I live"], "lived"],
       ["I wish I ___ harder at school.", ["had studied", "studied", "have studied"], "had studied"],
       ["By the time we arrived, the meeting ___ .", ["had started", "has started", "starts"], "had started"],
-      ["I'm not used to ___ up so early.", ["getting", "get", "got"], "getting"]
+      ["I'm not used to ___ up so early.", ["getting", "get", "got"], "getting"],
+      ["If I had known, I ___ you.", ["would have told", "would tell", "will tell"], "would have told"],
+      ["He denied ___ the window.", ["breaking", "to break", "break"], "breaking"],
+      ["The project, ___ started in 2020, is nearly finished.", ["which", "that", "what"], "which"],
+      ["Hardly ___ arrived when it started to rain.", ["had we", "we had", "did we"], "had we"],
+      ["She suggested that he ___ a doctor.", ["see", "sees", "to see"], "see"],
+      ["I'd rather you ___ smoke in the car.", ["didn't", "don't", "won't"], "didn't"],
+      ["The house needs ___ .", ["painting", "to paint", "paint"], "painting"],
+      ["He must ___ the bus. He's very late.", ["have missed", "miss", "missed"], "have missed"],
+      ["Not only ___ late, but he also forgot the documents.", ["was he", "he was", "he is"], "was he"],
+      ["It's high time we ___ .", ["left", "leave", "will leave"], "left"],
+      ["The concrete ___ before the inspection tomorrow.", ["will have been poured", "will pour", "has poured"], "will have been poured"],
+      ["Despite ___ tired, she finished the report.", ["being", "she was", "of being"], "being"],
+      ["He's the engineer ___ design won the award.", ["whose", "who", "which"], "whose"],
+      ["Had I known, I ___ earlier.", ["would have come", "will come", "came"], "would have come"],
+      ["I'm looking forward ___ you.", ["to meeting", "to meet", "meeting"], "to meeting"],
+      ["She ___ have taken the keys; they were on the table.", ["can't", "mustn't", "shouldn't"], "can't"],
+      ["The more you practise, ___ you become.", ["the better", "better", "the best"], "the better"],
+      ["We had the documents ___ by a translator.", ["checked", "check", "to check"], "checked"],
+      ["He spoke as if he ___ the boss.", ["were", "is", "be"], "were"],
+      ["No sooner had he sat down ___ the phone rang.", ["than", "when", "then"], "than"],
+      ["It is said that the tower ___ in 1979.", ["was completed", "completed", "has completed"], "was completed"],
+      ["I regret ___ you that the flight is cancelled.", ["to inform", "informing", "inform"], "to inform"],
+      ["By next year, she ___ here for a decade.", ["will have worked", "will work", "works"], "will have worked"],
+      ["Should you need help, ___ me.", ["call", "calling", "to call"], "call"]
     ]
   },
 
@@ -1276,6 +1414,205 @@ window.LISAN_COURSES.en = {
   ]
 };
 
+/* =========================================================
+   لِسان — القاموس المدمج للترجمة الفورية (ضغطة مطوّلة على الكلمة)
+   يُدمج تلقائياً مع مفردات الدروس. الصيغة: "word": "الترجمة" أو ["الترجمة", "شرح قصير"]
+   يعمل دون إنترنت.
+   ========================================================= */
+window.LISAN_GLOSS = window.LISAN_GLOSS || {};
+window.LISAN_GLOSS.en = {
+  // كلمات وظيفية وقواعدية
+  "that": ["ذلك / تلك / أنّ", "تُستخدم للإشارة للبعيد، أو لربط جملتين."],
+  "this": ["هذا / هذه", "للإشارة إلى شيء قريب ومفرد."],
+  "these": ["هؤلاء / هذه", "للإشارة إلى أشياء قريبة بصيغة الجمع."],
+  "those": ["أولئك / تلك", "للإشارة إلى أشياء بعيدة بصيغة الجمع."],
+  "they": ["هم / هنّ", "ضمير الجمع الغائب، ويأتي معه are."],
+  "their": ["لهم / ـهم", "صفة ملكية: their car = سيارتهم."],
+  "there": ["هناك", "There is / There are = يوجد / توجد."],
+  "your": ["لك / ـك", "صفة ملكية: your book = كتابك."],
+  "mine": ["لي / خاصتي", "ضمير ملكية يأتي وحده: It's mine = إنه لي."],
+  "with": "مع",
+  "into": "إلى داخل",
+  "over": "فوق / انتهى",
+  "very": "جداً",
+  "much": ["كثير", "مع غير المعدود، وفي very much = جزيلاً."],
+  "many": ["كثير", "مع المعدود: many books."],
+  "more": "أكثر",
+  "most": ["الأكثر", "للتفضيل مع الصفات الطويلة: the most beautiful."],
+  "every": "كل",
+  "everyone": "الجميع",
+  "anything": "أي شيء",
+  "nothing": "لا شيء",
+  "else": "آخر / غير ذلك",
+  "same": "نفس / ذاته",
+  "together": "معاً",
+  "sometime": "في وقت ما",
+  "before": "قبل",
+  "after": "بعد",
+  "next": "التالي / القادم",
+  "last": "الأخير / الماضي",
+  "first": "الأول",
+  "third": "الثالث",
+  "fourth": "الرابع",
+  "within": "ضمن / خلال",
+  "front": ["أمام", "in front of = أمام."],
+  "straight": "مباشرة / مستقيم",
+  "left": "يسار / غادر",
+  "right": "يمين / صحيح",
+  "close": "قريب / يغلق",
+  "sure": "بالتأكيد / متأكد",
+  "true": "صحيح / حقيقي",
+  "perfect": "ممتاز / مثالي",
+  "great": "رائع / عظيم",
+  "greatly": "بشكل كبير",
+  "nice": "لطيف / جميل",
+  "good": "جيد",
+  "best": ["الأفضل", "تفضيل good: good → better → the best."],
+  "worst": ["الأسوأ", "تفضيل bad: bad → worse → the worst."],
+  "biggest": "الأكبر",
+  "highest": "الأعلى",
+  "oldest": "الأكبر سناً / الأقدم",
+  "youngest": "الأصغر سناً",
+  "hotter": "أحرّ",
+  "fast": "سريع / بسرعة",
+  "hard": "صعب / بجد",
+  "long": "طويل",
+  "large": "كبير",
+  "medium": "متوسط",
+  "beautiful": "جميل",
+  "interesting": "ممتع / مثير للاهتمام",
+  "angry": "غاضب",
+  "sunny": "مشمس",
+  "civil": ["مدني", "civil engineer = مهندس مدني."],
+  // أفعال وتصريفاتها
+  "have": ["يملك / لديه", "مع I / you / we / they. ومع he / she / it تصبح has."],
+  "does": ["فعل مساعد", "للسؤال والنفي مع he / she / it: Does she...? / doesn't."],
+  "doing": "يفعل (الآن)",
+  "were": ["كانوا / كنتم", "ماضي are."],
+  "will": ["سوف", "للمستقبل: I will call you."],
+  "would": ["كان سـ / لو", "للتمني والطلب المهذب والشرط."],
+  "could": ["يستطيع (بأدب) / استطاع", "Could you...? طلب مهذب."],
+  "come": "يأتي",
+  "comes": "يأتي",
+  "goes": "يذهب",
+  "going": ["ذاهب", "going to = سوف (لخطة مسبقة)."],
+  "give": "يعطي",
+  "make": "يصنع / يعمل",
+  "look": "انظر / يبدو",
+  "love": "يحب",
+  "enjoy": "يستمتع",
+  "meet": "يقابل / يتعرّف على",
+  "send": "يرسل",
+  "write": "يكتب",
+  "written": "مكتوب (تصريف ثالث لـ write)",
+  "eaten": "مأكول (تصريف ثالث لـ eat)",
+  "seen": "مرئي (تصريف ثالث لـ see)",
+  "studied": "درس (ماضي study)",
+  "stopped": "توقف / أوقف (ماضي stop)",
+  "travelled": "سافر (ماضي travel)",
+  "reserved": "حجز (ماضي reserve)",
+  "turn": "ينعطف / دور",
+  "wake": ["يستيقظ", "wake up = يستيقظ."],
+  "rest": "يرتاح / راحة",
+  "worry": "يقلق",
+  "catch": "يلحق / يمسك",
+  "check": "يفحص / يتحقق",
+  "checking": "يفحص / يشحن (حقائب في المطار)",
+  "pour": "يصبّ",
+  "pouring": ["الصبّ", "pouring concrete = صبّ الخرسانة."],
+  "testing": "اختبار / فحص",
+  "ringing": "يرنّ",
+  "sounds": ["يبدو", "That sounds great = يبدو ذلك رائعاً."],
+  "thank": "يشكر",
+  "thanks": "شكراً",
+  "welcome": ["أهلاً / العفو", "You're welcome = العفو (رداً على الشكر)."],
+  // أسماء عامة
+  "morning": "صباح",
+  "evening": "مساء",
+  "night": "ليل",
+  "nights": "ليالٍ",
+  "week": "أسبوع",
+  "hour": "ساعة",
+  "life": "حياة",
+  "baby": "طفل رضيع",
+  "bank": "بنك",
+  "beach": "شاطئ",
+  "bike": "دراجة",
+  "bridge": "جسر",
+  "card": "بطاقة",
+  "course": ["مادة / دورة", "of course = بالطبع."],
+  "dinner": "عشاء",
+  "lunch": "غداء",
+  "email": "بريد إلكتروني",
+  "film": "فيلم",
+  "fish": "سمك",
+  "floor": "طابق / أرضية",
+  "football": "كرة القدم",
+  "gate": "بوابة",
+  "gold": "ذهب",
+  "silver": "فضة",
+  "hotel": "فندق",
+  "room": "غرفة",
+  "mistake": "خطأ",
+  "mountain": "جبل",
+  "party": "حفلة",
+  "passport": "جواز سفر",
+  "password": "كلمة مرور",
+  "pharmacy": "صيدلية",
+  "picture": "صورة",
+  "problem": "مشكلة",
+  "reservation": "حجز",
+  "seat": "مقعد",
+  "aisle": ["ممر", "aisle seat = مقعد بجانب الممر في الطائرة."],
+  "boarding": ["الصعود (للطائرة)", "boarding pass = بطاقة صعود الطائرة."],
+  "security": "أمن / تفتيش أمني",
+  "shop": "محل",
+  "size": "حجم / مقاس",
+  "suit": "بدلة",
+  "suitcase": "حقيبة سفر",
+  "taxi": "سيارة أجرة",
+  "test": "اختبار",
+  "train": "قطار",
+  "language": "لغة",
+  "languages": "لغات",
+  "english": "اللغة الإنجليزية",
+  "arabic": "اللغة العربية",
+  "chinese": "اللغة الصينية",
+  "sushi": "سوشي (طعام ياباني)",
+  "dinar": "دينار",
+  "fifty": "خمسون",
+  "five": "خمسة",
+  "seven": "سبعة",
+  "eight": "ثمانية",
+  "three": "ثلاثة",
+  "monday": "الاثنين",
+  "friday": "الجمعة",
+  "saturday": "السبت",
+  "workers": "عمال",
+  "results": "نتائج",
+  // مصطلحات هندسية (محادثة الموقع)
+  "concrete": ["خرسانة", "مادة البناء الأساسية: إسمنت وركام وماء."],
+  "slump": ["الهبوط", "Slump test = اختبار هبوط الخرسانة لقياس قوامها."],
+  "pump": ["مضخة", "Concrete pump = مضخة الخرسانة."],
+  "specifications": ["المواصفات", "الشروط الفنية التي يجب أن يلتزم بها العمل."],
+  // أسماء علم وأماكن
+  "ahmad": "أحمد (اسم علم)",
+  "fatma": "فاطمة (اسم علم)",
+  "noura": "نورة (اسم علم)",
+  "hassan": "حسن (اسم علم)",
+  "omar": "عمر (اسم علم)",
+  "david": "ديفيد (اسم علم)",
+  "kuwait": "الكويت",
+  "salmiya": "السالمية",
+  "jahra": "الجهراء",
+  "dubai": "دبي",
+  "gulf": "الخليج",
+  "london": "لندن",
+  "paris": "باريس",
+  "japan": "اليابان",
+  "everest": "جبل إيفرست"
+};
+
 </script>
 <script>
 /* =========================================================
@@ -1341,6 +1678,20 @@ const ALLV = LESSONS.flatMap(l => l.vocab.map(v => ({ en: v[0], ar: v[1], lid: l
 const VMAP = {}; ALLV.forEach(v => { if (!VMAP[v.en]) VMAP[v.en] = v; });
 const SMAP = {}, BMAP = {}; // للمراجعة: الجمل والفراغات التي أخطأ فيها المتعلم
 LESSONS.forEach(l => { l.sentences.forEach(s => { SMAP[s[0]] = { s, L: l }; }); l.blanks.forEach(b => { BMAP[b[0]] = { b, L: l }; }); });
+
+/* القاموس المدمج للترجمة الفورية: مفردات الدروس + أزواج النطق + gloss-en.js */
+const GL = {};
+ALLV.forEach(v => { const k = v.en.toLowerCase(); if (!GL[k]) GL[k] = { ar: v.ar }; });
+LESSONS.forEach(l => (l.pairs || []).forEach(pr => [[pr[0], pr[2]], [pr[1], pr[3]]].forEach(([w, a]) => { const k = w.toLowerCase(); if (!GL[k] && a) GL[k] = { ar: a }; })));
+(() => { const G2 = (window.LISAN_GLOSS || {}).en || {}; for (const k in G2) { const v = G2[k]; const cur = GL[k]; const e = Array.isArray(v) ? { ar: v[0], note: v[1] } : { ar: v }; GL[k] = cur ? Object.assign({}, cur, { note: cur.note || e.note }) : e; } })();
+function lookup(w) {
+  w = String(w).toLowerCase().trim().replace(/'s$/, '');
+  if (GL[w]) return Object.assign({ w }, GL[w]);
+  const c = [w.replace(/ies$/, 'y'), w.replace(/es$/, ''), w.replace(/s$/, ''), w.replace(/ied$/, 'y'), w.replace(/ed$/, ''), w.replace(/ed$/, 'e'), w.replace(/(.)\1ed$/, '$1'), w.replace(/ing$/, ''), w.replace(/ing$/, 'e'), w.replace(/(.)\1ing$/, '$1'), w.replace(/er$/, ''), w.replace(/est$/, '')];
+  for (const x of c) if (x !== w && GL[x]) return Object.assign({ w: x }, GL[x]);
+  return null;
+}
+function exampleFor(w) { const re = new RegExp('\\b' + w.replace(/[^a-z']/gi, '') + '\\b', 'i'); for (const L of LESSONS) for (const s of L.sentences) if (re.test(s[0])) return s; return null; }
 const ALLWORDS = [...new Set(LESSONS.flatMap(l => l.sentences.flatMap(s => tok(s[0]))))];
 const TAGS = { s: 'الفاعل', v: 'الفعل', x: 'فعل مساعد / أداة', o: 'التكملة / المفعول', t: 'زمان / تكرار / شرط', q: 'أداة سؤال', p: 'حرف جر / مكان' };
 
@@ -1398,7 +1749,7 @@ function P() { return DB.profiles.find(p => p.id === DB.current) || null; }
 function newProfile(name, avatar, goal) {
   return { id: 'p' + Date.now().toString(36) + rnd(1e4), name, avatar, goal, lang: 'en', xp: 0, streak: 0, lastDay: null, xpLog: {},
     pin: null, placement: null, startUnit: 0, passed: {}, tests: [], done: {}, convos: {}, srs: {}, badges: [],
-    stats: { lessons: 0, perfect: 0, reviews: 0, talks: 0, tests: 0 }, settings: { rate: 0.9, mic: true, sfx: true, theme: 'auto' }, created: Date.now() };
+    stats: { lessons: 0, perfect: 0, reviews: 0, talks: 0, tests: 0 }, settings: { rate: 0.9, mic: true, sfx: true, theme: 'auto', timer: true }, created: Date.now() };
 }
 function fixProfile(p) { // ترقية آمنة لملفات الإصدار السابق دون فقدان أي تقدّم
   const base = newProfile(p.name || 'متعلّم', p.avatar || '🦊', p.goal || 30);
@@ -1418,7 +1769,7 @@ function fixProfile(p) { // ترقية آمنة لملفات الإصدار ال
   delete p.hearts; delete p.heartsTs; delete p.settings.unlimited;
   return p;
 }
-function fixDB() { DB.profiles.forEach(fixProfile); if (!DB.family && DB.profiles.length) DB.family = { name: 'عائلتي', pin: null, created: Date.now() }; DB.v = 2; }
+function fixDB() { DB.profiles.forEach(fixProfile); if (DB.family && !DB.family.pin) delete DB.family; DB.v = 3; }
 fixDB();
 
 /* ---------------- منطق التقدّم ---------------- */
@@ -1540,7 +1891,56 @@ document.addEventListener('keydown', e => {
   }
   onKey && onKey(e);
 });
-function leave() { SCREEN = 'busy'; onKey = null; try { synth && synth.cancel(); } catch (e) { } window.scrollTo(0, 0); }
+function leave() { SCREEN = 'busy'; onKey = null; GLOSS_OFF = false; clearTimeout(TIMER.t); clearInterval(TIMER.i); closeGloss(); try { synth && synth.cancel(); } catch (e) { } window.scrollTo(0, 0); }
+
+/* ---------- الترجمة الفورية: ضغطة مطوّلة (ثانية واحدة) على كلمة إنجليزية من 4 أحرف فأكثر ----------
+   تُعطَّل أثناء الاختبارات وتحدي السرعة حتى لا تكشف الإجابة. */
+const LONGPRESS_MS = 1000;
+let GLOSS_OFF = false, glossEl = null;
+function closeGloss() { if (glossEl) { glossEl.remove(); glossEl = null; } }
+function showGloss(word, x, y) {
+  closeGloss(); const g = lookup(word); const ex = g ? exampleFor(g.w) : null;
+  const d = document.createElement('div'); d.className = 'gloss'; d.setAttribute('role', 'dialog');
+  d.innerHTML = `<div class="gl-h"><b dir="ltr" class="en">${esc(word)}</b><button class="spk sm" data-say="${esc(word)}" aria-label="استمع">🔊</button><button class="icon-btn gl-x" aria-label="إغلاق">✕</button></div>
+    ${g ? `<div class="gl-ar">${esc(g.ar)}</div>${g.note ? `<div class="gl-n">${esc(g.note)}</div>` : ''}${ex ? `<div class="gl-ex"><div dir="ltr" class="en">${esc(ex[0])}</div><div>${esc(ex[1])}</div></div>` : ''}` : '<div class="gl-n">هذه الكلمة غير موجودة في القاموس بعد، لكن يمكنك سماع نطقها.</div>'}`;
+  document.body.appendChild(d); glossEl = d; bindSay(d); $('.gl-x', d).onclick = closeGloss;
+  const r = d.getBoundingClientRect(); d.style.left = Math.max(10, (innerWidth - r.width) / 2) + 'px'; d.style.top = (y - r.height - 18 > 10 ? y - r.height - 18 : y + 24) + 'px';
+  say(word); logEv('gloss', { word: word.toLowerCase(), found: !!g });
+}
+(function longPress() {
+  let t = null, sx = 0, sy = 0, fired = false;
+  const wordAt = (x, y, target) => {
+    const box = target && target.closest && target.closest('.tile,.chip,.mbtn,.tkw,.opt,.ropt');
+    if (box) { const tx = box.textContent.replace(/^\d+/, '').trim(); if (/^[A-Za-z' -]+$/.test(tx) && (tx.includes(' ') ? lookup(tx) : true)) return tx; }
+    let node, off;
+    if (document.caretRangeFromPoint) { const r = document.caretRangeFromPoint(x, y); if (!r) return null; node = r.startContainer; off = r.startOffset; }
+    else if (document.caretPositionFromPoint) { const r = document.caretPositionFromPoint(x, y); if (!r) return null; node = r.offsetNode; off = r.offset; }
+    if (!node || node.nodeType !== 3) return null;
+    const s = node.textContent; let a = off, b = off;
+    while (a > 0 && /[A-Za-z']/.test(s[a - 1])) a--; while (b < s.length && /[A-Za-z']/.test(s[b])) b++;
+    return s.slice(a, b).replace(/^'+|'+$/g, '');
+  };
+  document.addEventListener('pointerdown', e => {
+    if (glossEl && !glossEl.contains(e.target)) closeGloss();
+    if (GLOSS_OFF || !e.target.closest('#app') || e.target.closest('input,textarea,.pin-pad')) return;
+    sx = e.clientX; sy = e.clientY; fired = false; clearTimeout(t); const tg = e.target;
+    t = setTimeout(() => { const w = wordAt(sx, sy, tg); if (w && w.replace(/[^A-Za-z]/g, '').length >= 4) { fired = true; showGloss(w, sx, sy); } }, LONGPRESS_MS);
+  });
+  ['pointerup', 'pointercancel'].forEach(ev => document.addEventListener(ev, () => clearTimeout(t)));
+  document.addEventListener('pointermove', e => { if (Math.abs(e.clientX - sx) > 12 || Math.abs(e.clientY - sy) > 12) clearTimeout(t); });
+  document.addEventListener('click', e => { if (fired) { e.stopPropagation(); e.preventDefault(); fired = false; } }, true); // الضغط المطوّل لا يختار الإجابة
+  document.addEventListener('contextmenu', e => { if (e.target.closest('#app') && !e.target.closest('input,textarea')) e.preventDefault(); });
+})();
+
+/* ---------- المؤقت ---------- */
+const TIMER = { t: null, i: null };
+function startTimer(secs, onEnd) {
+  const bar = $('.tbar i'); if (!bar) return; const t0 = Date.now(); clearTimeout(TIMER.t); clearInterval(TIMER.i);
+  bar.parentElement.hidden = false; bar.style.width = '100%';
+  TIMER.i = setInterval(() => { const left = Math.max(0, 1 - (Date.now() - t0) / (secs * 1000)); bar.style.width = (left * 100) + '%'; bar.parentElement.classList.toggle('late', left < 0.3); const s = $('.tbar b'); if (s) s.textContent = Math.ceil(left * secs); }, 100);
+  TIMER.t = setTimeout(() => { clearInterval(TIMER.i); onEnd(); }, secs * 1000);
+  return () => { clearTimeout(TIMER.t); clearInterval(TIMER.i); return Math.max(0, secs - (Date.now() - t0) / 1000); };
+}
 
 /* ---------------- توليد التمارين ---------------- */
 const okey = s => /[a-z]/i.test(s) ? norm(s) : String(s).trim();
@@ -1590,20 +1990,28 @@ function genLesson(L) {
   ];
   if (typed.length) rest.push(exTType(typed.find(s => s !== S[0] && s !== S[1]) || typed[0]));
   if (L.pairs) shuffle(L.pairs).slice(0, 4).forEach(pr => rest.push(exPair(pr)));
+  shuffle(rest.filter(e => TIMED_TYPES.includes(e.type) && !e.audio)).slice(0, 2).forEach(e => { e.timed = 15; });
   const out = [{ type: 'match', pairs: V.slice(0, 5) }, ...shuffle(rest)];
   out.splice(out.length - 2, 0, exSpeak(L.speak ? pick(L.speak) : (S[5] || S[2])));
   return out;
 }
 /* اختبار نهاية الوحدة: أسئلة من كل دروسها، بلا شرح وبلا إعادة */
-function genUnitTest(u) {
-  const out = [];
-  UNIT_LESSONS[u].forEach(L => {
-    const V = shuffle(L.vocab), S = shuffle(L.sentences), B = shuffle(L.blanks);
-    out.push(exFill(B[0]), exMcArEn(V[0], L));
-    out.push(L.pairs ? exPair(pick(L.pairs)) : exOrder(S[0]));
-    if (L.li % 2 === 0) out.push(exDict(S[1])); else out.push(exFill(B[1]));
+function genUnitTest(u, p) {
+  const last = new Set(((p && p.lastTest) || {})[u] || []); const ls = UNIT_LESSONS[u]; const per = Math.ceil(18 / ls.length);
+  let out = [];
+  ls.forEach(L => {
+    const cands = [
+      ...L.blanks.map(b => ({ k: 'B:' + b[0], f: () => exFill(b) })),
+      ...L.vocab.map(v => ({ k: 'V:' + v[0], f: () => pick([exMcArEn, exMcEnAr])(v, L) })),
+      ...L.sentences.map(s => ({ k: 'S:' + s[0], f: () => pick(Array.isArray(s[2]) && s[2].length ? [exOrder, exDict, exTType] : [exOrder, exDict])(s) })),
+      ...(L.pairs || []).map(pr => ({ k: 'P:' + pr[0], f: () => exPair(pr) }))
+    ];
+    const fresh = shuffle(cands.filter(c => !last.has(c.k))), old = shuffle(cands.filter(c => last.has(c.k)));
+    fresh.concat(old).slice(0, per).forEach(c => { const e = c.f(); e.tkey = c.k; out.push(e); });
   });
-  return shuffle(out).slice(0, 18);
+  out = shuffle(out).slice(0, 18);
+  if (p) { p.lastTest = p.lastTest || {}; p.lastTest[u] = out.map(e => e.tkey); }
+  return out;
 }
 
 /* ---------------- مُشغّلات التمارين ---------------- */
@@ -1620,14 +2028,14 @@ R.mc = (ex, el, ready) => {
     const ok = ex.options[sel] === ex.answer; el.classList.add('locked');
     $$('.opt', el).forEach((b, i) => { if (ex.options[i] === ex.answer) b.classList.add('right'); else if (i === sel) b.classList.add('wrong'); b.classList.remove('sel'); });
     if (ex.optEn) ex.sayAfter = ex.answer;
-    return { ok, correct: ex.optEn ? en(ex.answer) : esc(ex.answer), note: ex.note || '' };
+    return { ok, correct: ex.optEn ? en(ex.answer) : esc(ex.answer), note: ex.note || '', given: sel < 0 ? '' : ex.options[sel] };
   } };
 };
 R.fill = (ex, el, ready) => {
   let sel = -1;
   el.innerHTML = `<h2 class="q">أكمل الفراغ</h2><div class="fill-s" dir="ltr">${esc(ex.pre)}<span class="slot">&nbsp;</span>${esc(ex.post)}</div><div class="fill-ar">${esc(ex.ar)}</div><div class="chips" dir="ltr">${ex.options.map((o, i) => `<button class="chip" data-i="${i}">${esc(o)}</button>`).join('')}</div>`;
   $$('.chip', el).forEach(b => b.onclick = () => { sel = +b.dataset.i; $$('.chip', el).forEach(x => x.classList.toggle('sel', x === b)); $('.slot', el).textContent = ex.options[sel]; ready(true); });
-  return { check() { el.classList.add('locked'); const ok = ex.options[sel] === ex.answer; return { ok, correct: en(ex.full), note: ex.why ? '💡 ' + esc(ex.why) : '' }; } };
+  return { check() { el.classList.add('locked'); const ok = ex.options[sel] === ex.answer; return { ok, correct: en(ex.full), note: ex.why ? '💡 ' + esc(ex.why) : '', given: sel < 0 ? '' : ex.pre + ex.options[sel] + ex.post }; } };
 };
 R.order = (ex, el, ready) => {
   const chosen = [];
@@ -1649,7 +2057,7 @@ R.order = (ex, el, ready) => {
   return { check() {
     el.classList.add('locked'); const got = norm(chosen.map(i => ex.tiles[i]).join(' '));
     const ok = (ex.alts || [ex.answer]).concat(ex.answer).some(x => norm(x) === got);
-    return { ok, correct: en(ex.en), note: esc(ex.ar) };
+    return { ok, correct: en(ex.en), note: esc(ex.ar), given: chosen.map(i => ex.tiles[i]).join(' ') };
   } };
 };
 /* حقل كتابة جملة (يُستخدم في الإملاء والترجمة الحرة وبديل النطق) */
@@ -1668,7 +2076,7 @@ R.dict = (ex, el, ready) => {
   bindSay(el); const inp = sentenceInput(el, ready); setTimeout(() => say(ex.en), 300);
   return { check() {
     inp.disabled = true; const m = matchAny(inp.value, [ex.en]);
-    return { ok: m.ok, correct: en(ex.en), note: m.ok && m.exact ? esc(ex.ar) : `<div dir="ltr" style="text-align:left">${diffWords(inp.value, ex.en)}</div>${esc(ex.ar)}` };
+    return { given: inp.value.trim(), ok: m.ok, correct: en(ex.en), note: m.ok && m.exact ? esc(ex.ar) : `<div dir="ltr" style="text-align:left">${diffWords(inp.value, ex.en)}</div>${esc(ex.ar)}` };
   } };
 };
 R.ttype = (ex, el, ready) => {
@@ -1680,7 +2088,7 @@ R.ttype = (ex, el, ready) => {
     let note = m.ok && !m.exact ? `انتبه للإملاء الصحيح: ${en(m.hit)}` : '';
     if (others.length && m.ok) note += `${note ? '<br>' : ''}صياغات صحيحة أخرى: ${others.map(en).join(' · ')}`;
     if (!m.ok) note = `<div dir="ltr" style="text-align:left">${diffWords(inp.value, ex.en)}</div>${others.length ? 'وتُقبل أيضاً: ' + others.map(en).join(' · ') : ''}`;
-    return { ok: m.ok, correct: en(m.ok ? m.hit : ex.en), note };
+    return { ok: m.ok, correct: en(m.ok ? m.hit : ex.en), note, given: inp.value.trim() };
   } };
 };
 R.write = (ex, el, ready) => {
@@ -1688,9 +2096,10 @@ R.write = (ex, el, ready) => {
   const inp = $('input', el); inp.oninput = () => ready(inp.value.trim().length > 0); setTimeout(() => inp.focus(), 150);
   return { check() {
     inp.disabled = true; const a = norm(inp.value), b = norm(ex.answer);
-    if (a === b) return { ok: true, correct: en(ex.answer) };
-    if (b.length >= 4 && lev(a, b) <= 1) return { ok: true, correct: en(ex.answer), note: `انتبه للإملاء الصحيح: ${en(ex.answer)}` };
-    return { ok: false, correct: en(ex.answer) };
+    const given = inp.value.trim();
+    if (a === b) return { ok: true, correct: en(ex.answer), given };
+    if (b.length >= 4 && lev(a, b) <= 1) return { ok: true, correct: en(ex.answer), note: `انتبه للإملاء الصحيح: ${en(ex.answer)}`, given };
+    return { ok: false, correct: en(ex.answer), given };
   } };
 };
 /* النطق: تقييم كل كلمة عبر خدمة التعرّف على الصوت في المتصفح (تحتاج إنترنت).
@@ -1722,7 +2131,7 @@ R.speak = (ex, el, ready, api) => {
   impl.check = () => {
     const pct = Math.round(res.k / res.sc.length * 100); const weak = res.sc.filter(x => !x.ok).map(x => x.w);
     const ok = pct >= 70; logEv('speak', { en: ex.en, pct, weak });
-    return { ok, soft: !ok, correct: en(ex.en), note: `درجة النطق: <b class="en">${pct}%</b>${weak.length ? ` · كلمات تحتاج تدريباً: ${weak.map(en).join(' ، ')}` : ' · نطق واضح لكل الكلمات 👏'}` };
+    return { ok, soft: !ok, given: heard, correct: en(ex.en), note: `درجة النطق: <b class="en">${pct}%</b>${weak.length ? ` · كلمات تحتاج تدريباً: ${weak.map(en).join(' ، ')}` : ' · نطق واضح لكل الكلمات 👏'}` };
   };
   return impl;
 };
@@ -1744,65 +2153,138 @@ R.match = (ex, el, ready, api) => {
 
 /* ---------------- مشغّل الجلسات ---------------- */
 const PRAISE = ['أحسنت! 🎉', 'ممتاز!', 'رائع! 👏', 'إجابة صحيحة!', 'عمل متقن!', 'استمر هكذا! 💪', 'مذهل! ✨'];
+const TYPE_NAME = { mc: 'اختيار', fill: 'إكمال فراغ', order: 'ترتيب جملة', write: 'كتابة كلمة', dict: 'استمع واكتب', ttype: 'ترجمة مكتوبة', speak: 'نطق', match: 'مطابقة' };
+/* نص السؤال كما يُعرض في شاشة «راجع إجاباتك» */
+function promptOf(ex) {
+  switch (ex.type) {
+    case 'mc': return ex.audio ? `🔊 ${ex.q}` : ex.bigEn ? en(ex.bigEn) : esc(ex.big);
+    case 'fill': return `<span dir="ltr" class="en">${esc(ex.pre)}___${esc(ex.post)}</span><br><small>${esc(ex.ar)}</small>`;
+    case 'order': return ex.listen ? '🔊 استمع ورتّب' : esc(ex.ar);
+    case 'write': return esc(ex.ar);
+    case 'dict': return '🔊 استمع واكتب';
+    case 'ttype': return esc(ex.ar);
+    case 'speak': return en(ex.en);
+    default: return '';
+  }
+}
+const showGiven = (ex, g) => !g ? '<i class="muted">لم تُجب</i>' : /[a-z]/i.test(g) ? en(g) : esc(g);
+/* الإجابة الصحيحة لسؤال انتهى وقته */
+function correctOf(ex) { return ex.type === 'fill' ? en(ex.full) : ex.type === 'mc' ? (ex.optEn ? en(ex.answer) : esc(ex.answer)) : en(ex.en || ex.answer || ''); }
+const TIMED_TYPES = ['mc', 'fill'];
+
 function runSession(opt) {
   leave();
-  const p = P(); const total = opt.exercises.length; const isTest = opt.mode === 'test';
-  const st = { queue: opt.exercises.slice(), done: 0, firstOk: 0, seen: new Set(), mistakes: 0, t0: Date.now(), cur: null, phase: 'answer', api: null, wrongKeys: [] };
+  const p = P(); const total = opt.exercises.length; const isTest = opt.mode === 'test' || opt.mode === 'speed';
+  const instant = isTest;                                  // الاختبار: الحكم فوراً عند الضغط
+  GLOSS_OFF = isTest;                                      // لا ترجمة فورية أثناء الاختبار
+  const st = { queue: opt.exercises.slice(), done: 0, firstOk: 0, seen: new Set(), mistakes: 0, t0: Date.now(), cur: null, phase: 'answer', api: null, wrongKeys: [], log: [], bonus: 0, stop: null };
   app.innerHTML = `<div class="ses">
-    <div class="ses-top"><button class="icon-btn" data-x aria-label="خروج">✕</button><div class="pbar"><i></i></div>${opt.mode === 'review' ? '<div class="hc" style="color:var(--t-q)">🧠</div>' : isTest ? '<div class="hc" style="color:var(--gold)">🏁</div>' : ''}</div>
+    <div class="ses-top"><button class="icon-btn" data-x aria-label="خروج">✕</button><div class="pbar"><i></i></div>${opt.mode === 'review' ? '<div class="hc" style="color:var(--t-q)">🧠</div>' : opt.mode === 'test' ? '<div class="hc" style="color:var(--gold)">🏁</div>' : opt.mode === 'speed' ? '<div class="hc" style="color:var(--acc)">⚡</div>' : ''}</div>
+    <div class="tbar" hidden><i></i><b></b></div>
     <div class="ses-body"></div>
     <div class="ses-foot"><div class="fb"></div><div class="foot-row"><button class="btn ghost" data-skip hidden></button><button class="btn" id="chk" disabled>تحقّق</button></div></div></div>`;
-  const body = $('.ses-body'), foot = $('.ses-foot'), fb = $('.fb'), chk = $('#chk'), skip = $('[data-skip]');
+  const body = $('.ses-body'), foot = $('.ses-foot'), fb = $('.fb'), chk = $('#chk'), skip = $('[data-skip]'), tbar = $('.tbar');
   $('[data-x]').onclick = () => confirmBox('هل تريد إنهاء الجلسة؟ لن يُحفظ تقدّمك فيها.', () => { leave(); go('home'); }, 'إنهاء');
   const upd = () => { $('.pbar i').style.width = (st.done / total * 100) + '%'; };
   function next() {
     if (!st.queue.length) return finish();
     st.cur = st.queue.shift(); st.phase = 'answer'; foot.className = 'ses-foot'; fb.innerHTML = ''; chk.textContent = 'تحقّق'; chk.disabled = true; skip.hidden = true;
-    body.innerHTML = ''; body.className = 'ses-body'; void body.offsetWidth; window.scrollTo(0, 0);
+    body.innerHTML = ''; body.className = 'ses-body'; void body.offsetWidth; window.scrollTo(0, 0); tbar.hidden = true; st.stop = null;
     const api = { autoOk: perfect => resolve({ ok: true, imperfect: !perfect }), showSkip: (t, fn) => { skip.hidden = false; skip.textContent = t; skip.onclick = fn; }, hideSkip: () => { skip.hidden = true; }, skipNeutral: () => { st.done++; upd(); next(); } };
-    st.api = R[st.cur.type](st.cur, body, r => { if (st.phase === 'answer') chk.disabled = !r; }, api);
-    if (st.cur.type === 'match') { chk.disabled = true; chk.textContent = 'طابِق كل الأزواج'; }
-    window.__lisan.cur = st.cur;
+    const ex = st.cur;
+    st.api = R[ex.type](ex, body, r => {
+      if (st.phase !== 'answer') return; chk.disabled = !r;
+      if (r && instant && TIMED_TYPES.includes(ex.type)) setTimeout(() => { if (st.phase === 'answer') chk.click(); }, 120);
+    }, api);
+    if (ex.type === 'match') { chk.disabled = true; chk.textContent = 'طابِق كل الأزواج'; }
+    if (ex.timed && p.settings.timer && TIMED_TYPES.includes(ex.type)) {
+      st.stop = startTimer(ex.timed, () => { if (st.phase !== 'answer') return; body.classList.add('locked'); resolve({ ok: false, timeout: true, correct: correctOf(ex), note: '⏰ انتهى الوقت', given: '' }); });
+    }
+    window.__lisan.cur = ex;
   }
   function resolve(res) {
+    const left = st.stop ? st.stop() : 0; st.stop = null;
     st.phase = 'fb'; skip.hidden = true; const ex = st.cur; const first = !st.seen.has(ex); st.seen.add(ex);
-    logEv('answer', { mode: opt.mode, ctx: opt.ctx || null, ex: ex.type, key: ex.key || null, ok: !!res.ok, first });
+    logEv('answer', { mode: opt.mode, ctx: opt.ctx || null, ex: ex.type, key: ex.key || null, ok: !!res.ok, first, given: res.given || null, timeout: !!res.timeout });
+    if (ex.type !== 'match') st.log.push({ type: ex.type, q: promptOf(ex), given: showGiven(ex, res.given), correct: res.correct, ok: !!res.ok, soft: !!res.soft, timeout: !!res.timeout, why: ex.why || '' });
     if (res.ok) {
       st.done++; if (first && !res.imperfect) st.firstOk++; SFX.ok(); foot.className = 'ses-foot ok';
-      fb.innerHTML = `<div class="fb-t">${pick(PRAISE)}</div>${res.note ? `<div class="fb-n">${res.note}</div>` : ''}`;
-      if (ex.key) srsHit(p, ex.key, true, opt.mode, !first); if (ex.sayAfter) setTimeout(() => say(ex.sayAfter), 150);
+      if (opt.mode === 'speed') st.bonus += Math.round(left);
+      fb.innerHTML = `<div class="fb-t">${pick(PRAISE)}${opt.mode === 'speed' && left ? ` <small class="en">+${Math.round(left)}</small>` : ''}</div>${res.note ? `<div class="fb-n">${res.note}</div>` : ''}`;
+      if (ex.key) srsHit(p, ex.key, true, opt.mode, !first); if (ex.sayAfter && opt.mode !== 'speed') setTimeout(() => say(ex.sayAfter), 150);
     } else if (res.soft) {
       st.done++; foot.className = 'ses-foot bad'; fb.innerHTML = `<div class="fb-t">قريب! تابع التدريب</div><div class="fb-a">${res.correct}</div><div class="fb-n">${res.note}</div>`; SFX.bad();
     } else {
       st.mistakes++; SFX.bad(); foot.className = 'ses-foot bad';
-      fb.innerHTML = `<div class="fb-t">الإجابة الصحيحة:</div><div class="fb-a">${res.correct}</div>${res.note ? `<div class="fb-n">${res.note}</div>` : ''}`;
+      fb.innerHTML = `<div class="fb-t">${res.timeout ? '⏰ انتهى الوقت · ' : ''}الإجابة الصحيحة:</div><div class="fb-a">${res.correct}</div>${res.note && !res.timeout ? `<div class="fb-n">${res.note}</div>` : ''}`;
       if (isTest) st.done++; else st.queue.push(ex);           // الاختبار لا يعيد السؤال
       if (ex.key) { srsHit(p, ex.key, false, opt.mode); st.wrongKeys.push(ex.key); }
     }
     upd(); save(); chk.disabled = false; chk.textContent = 'متابعة'; chk.focus({ preventScroll: true });
+    if (opt.mode === 'speed') setTimeout(() => { if (st.phase === 'fb' && st.cur === ex) next(); }, res.ok ? 700 : 1600);
   }
   chk.onclick = () => {
     if (st.phase === 'answer') { const r = st.api.check(); if (r) resolve(r); }
     else next();
   };
-  function finish() { const secs = Math.round((Date.now() - st.t0) / 1000); opt.onDone({ acc: Math.round(st.firstOk / total * 100), secs, mistakes: st.mistakes, total, wrongKeys: st.wrongKeys }); }
+  function finish() {
+    const secs = Math.round((Date.now() - st.t0) / 1000);
+    saveMistakes(p, st.log, opt.ctx || opt.mode);
+    opt.onDone({ acc: Math.round(st.firstOk / total * 100), secs, mistakes: st.mistakes, total, wrongKeys: st.wrongKeys, log: st.log, bonus: st.bonus });
+  }
   upd(); next();
+}
+/* حفظ الأخطاء في سجل المتعلم (آخر 200) ليرجع إليها لاحقاً */
+function saveMistakes(p, log, ctx) {
+  const wrong = log.filter(x => !x.ok).map(x => ({ t: Date.now(), ctx, type: x.type, q: x.q, given: x.given, correct: x.correct, timeout: x.timeout }));
+  if (wrong.length) { p.mistakes = (p.mistakes || []).concat(wrong).slice(-200); save(); }
+}
+const CTX_NAME = ctx => { if (!ctx) return ''; if (/^test(\d+)/.test(ctx)) return 'اختبار الوحدة ' + (+ctx.slice(4) + 1); if (ctx === 'placement') return 'اختبار المستوى'; if (ctx === 'review') return 'المراجعة'; if (ctx === 'speed') return 'تحدي السرعة'; const L = LESSONS.find(l => l.id === ctx); return L ? L.ta : ''; };
+
+/* ---------------- شاشة «راجع إجاباتك» ---------------- */
+function reviewAnswers(log, title, back) {
+  leave(); let showAll = false;
+  const wrongN = log.filter(x => !x.ok).length;
+  function draw() {
+    const items = (showAll ? log : log.filter(x => !x.ok));
+    app.innerHTML = `<div class="ses"><div class="ses-top"><button class="icon-btn" data-x aria-label="رجوع">→</button><div style="flex:1;font-weight:700">📋 ${title}</div></div>
+      <div class="g-wrap">
+        <div class="ra-sum"><span class="pill ok">✅ ${log.length - wrongN} صحيحة</span><span class="pill bad">❌ ${wrongN} خاطئة</span>
+          <button class="btn ghost sm" data-all>${showAll ? 'الأخطاء فقط' : 'إظهار الكل'}</button></div>
+        ${items.length ? items.map((x, i) => `<div class="ra-item ${x.ok ? 'ok' : 'bad'}">
+          <div class="ra-h"><span>${x.ok ? '✅' : '❌'} ${TYPE_NAME[x.type] || ''}${x.timeout ? ' · ⏰ انتهى الوقت' : ''}${x.ctx ? ` · <small>${esc(CTX_NAME(x.ctx))}</small>` : ''}</span></div>
+          <div class="ra-q">${x.q}</div>
+          <div class="ra-row"><small>إجابتك</small><div class="${x.ok ? 'w-ok' : 'w-bad-plain'}">${x.given}</div></div>
+          ${x.ok ? '' : `<div class="ra-row"><small>الصحيح</small><div class="w-ok">${x.correct}</div></div>`}
+          ${!x.ok && x.why ? `<div class="ra-why">💡 ${esc(x.why)}</div>` : ''}
+        </div>`).join('') : `<div class="card" style="text-align:center"><div style="font-size:44px">🌟</div><b>لا أخطاء!</b><p class="muted">كل إجاباتك صحيحة.</p></div>`}
+      </div>
+      <div class="ses-foot"><button class="btn" data-b>متابعة</button></div></div>`;
+    $('[data-x]').onclick = back; $('[data-b]').onclick = back;
+    $('[data-all]').onclick = () => { showAll = !showAll; draw(); };
+  }
+  draw();
 }
 
 /* ---------------- شاشة النتيجة ---------------- */
 function resultScreen(o) {
   leave(); SFX.win(); const p = P(); const g = Math.min(100, Math.round(todayXP(p) / p.goal * 100));
   const goalHit = o.goalBefore < p.goal && todayXP(p) >= p.goal;
+  const log = o.log || []; const wrongN = log.filter(x => !x.ok).length;
   app.innerHTML = `<div class="result"><div class="big-ic">${o.icon}</div><h1>${o.title}</h1><p class="muted">${o.sub || ''}</p>
     <div class="res-tiles">
       <div class="rt" style="--c:var(--acc)"><small>نقاط XP</small><b>+${o.xp}</b></div>
       <div class="rt" style="--c:var(--pri)"><small>الدقة</small><b>${o.acc}%</b></div>
       <div class="rt" style="--c:var(--t-s)"><small>الوقت</small><b>${Math.floor(o.secs / 60)}:${String(o.secs % 60).padStart(2, '0')}</b></div>
     </div>
-    ${goalHit ? `<div class="card" style="margin-bottom:12px"><b>🎯 حققت هدفك اليومي!</b><div class="muted">سلسلتك الآن ${streakNow(p)} 🔥</div></div>` : `<div class="muted" style="margin-bottom:12px">الهدف اليومي: ${todayXP(p)} / ${p.goal} XP (${g}%) · السلسلة ${streakNow(p)} 🔥</div>`}
+    ${goalHit ? `<div class="card" style="margin-bottom:12px"><b>🎯 حققت هدفك اليومي!</b><div class="muted">سلسلتك الآن <span class="en">${streakNow(p)}</span> 🔥</div></div>` : `<div class="muted" style="margin-bottom:12px">الهدف اليومي: <span class="en">${todayXP(p)} / ${p.goal} XP (${g}%)</span> · السلسلة <span class="en">${streakNow(p)}</span> 🔥</div>`}
     ${o.badges && o.badges.length ? `<div class="new-badges">${o.badges.map(b => `<div class="nb">${b.i} ${b.t}</div>`).join('')}</div>` : ''}
-    <div class="spacer"></div><button class="btn" data-n>متابعة</button></div>`;
-  $('[data-n]').onclick = o.next || (() => go('home'));
+    <div class="spacer"></div>
+    ${log.length ? `<button class="btn ${wrongN ? 'acc' : 'ghost'}" data-ra>📋 راجع إجاباتك${wrongN ? ` (<span class="en">${wrongN}</span> خطأ)` : ''}</button>` : ''}
+    <button class="btn" data-n>متابعة</button></div>`;
+  const nextFn = o.next || (() => go('home'));
+  $('[data-n]').onclick = nextFn;
+  const ra = $('[data-ra]'); if (ra) ra.onclick = () => reviewAnswers(log, 'راجع إجاباتك', () => resultScreen(Object.assign({}, o, { badges: [], replay: true })));
 }
 
 /* ---------------- القواعد التفاعلية ---------------- */
@@ -1869,7 +2351,7 @@ function lessonDone(L, s) {
   const unitReady = first && allLessonsDone(p, L.ui) && !p.passed[L.ui];
   resultScreen({ icon: unitReady ? '🏁' : s.acc === 100 ? '🌟' : '🎉', title: unitReady ? 'أنهيت دروس الوحدة!' : 'أتممت الدرس!',
     sub: unitReady ? 'اختبار نهاية الوحدة جاهز الآن، واجتيازه يفتح الوحدة التالية.' : `${esc(L.ta)} · ${fresh} كلمات جديدة أضيفت للمراجعة${s.wrongKeys.length ? ' · وما أخطأت فيه سيعود إليك في المراجعة' : ''}`,
-    xp, acc: s.acc, secs: s.secs, badges, goalBefore: before });
+    xp, acc: s.acc, secs: s.secs, badges, goalBefore: before, log: s.log });
 }
 
 /* ---------------- اختبار نهاية الوحدة ---------------- */
@@ -1884,7 +2366,7 @@ function unitTestSheet(u) {
     <button class="btn acc" data-go>${p.passed[u] ? 'أعد الاختبار' : 'ابدأ الاختبار'}</button>`, (s, close) => { $('[data-go]', s).onclick = () => { close(); startUnitTest(u); }; });
 }
 function startUnitTest(u) {
-  runSession({ mode: 'test', ctx: 'test' + u, exercises: genUnitTest(u), onDone: s => {
+  runSession({ mode: 'test', ctx: 'test' + u, exercises: genUnitTest(u, P()), onDone: s => {
     const p = P(); const before = todayXP(p); const passed = s.acc >= PASS_MARK; const firstPass = passed && !p.passed[u];
     const rec = { unit: u, score: s.acc, passed, secs: s.secs, t: Date.now(), day: today() };
     p.tests = (p.tests || []).concat(rec).slice(-100); p.stats.tests++;
@@ -1894,7 +2376,7 @@ function startUnitTest(u) {
     const weakLessons = [...new Set(s.wrongKeys.map(k => (k.startsWith('B:') && BMAP[k.slice(2)]) ? BMAP[k.slice(2)].L.ta : (k.startsWith('S:') && SMAP[k.slice(2)]) ? SMAP[k.slice(2)].L.ta : null).filter(Boolean))];
     resultScreen({ icon: passed ? '🏆' : '💪', title: passed ? 'نجحت في الاختبار!' : 'قريب من النجاح',
       sub: passed ? (firstPass && u + 1 < NU ? `فُتحت الوحدة ${u + 2}: ${C.units[u + 1].t}` : 'أحسنت!') : `تحتاج ${PASS_MARK}% للنجاح. راجع${weakLessons.length ? ': ' + weakLessons.join('، ') : ' دروس الوحدة'}، ثم أعد المحاولة.`,
-      xp, acc: s.acc, secs: s.secs, badges, goalBefore: before });
+      xp, acc: s.acc, secs: s.secs, badges, goalBefore: before, log: s.log });
   } });
 }
 
@@ -1916,7 +2398,7 @@ function startReview() {
     const before = todayXP(p); const xp = 5 + Math.round(due.length * s.acc / 100); addXP(p, xp); p.stats.reviews++;
     logEv('review', { n: due.length, acc: s.acc, secs: s.secs, xp }); const badges = checkBadges(p); save();
     const left = dueKeys(p).length;
-    resultScreen({ icon: '🧠', title: 'أنهيت المراجعة!', sub: left ? `بقي ${left} عنصراً مستحقاً اليوم` : 'لا شيء مستحق اليوم. ذاكرتك في أفضل حال!', xp, acc: s.acc, secs: s.secs, badges, goalBefore: before });
+    resultScreen({ icon: '🧠', title: 'أنهيت المراجعة!', sub: left ? `بقي ${left} عنصراً مستحقاً اليوم` : 'لا شيء مستحق اليوم. ذاكرتك في أفضل حال!', xp, acc: s.acc, secs: s.secs, badges, goalBefore: before, log: s.log });
   } });
 }
 
@@ -1930,37 +2412,85 @@ function startPlacement() {
     <div class="spacer"></div><button class="btn" data-s>ابدأ الاختبار</button><button class="btn ghost" data-b>رجوع</button></div>`;
   $('[data-s]').onclick = runPlacement; $('[data-b]').onclick = () => go('home');
 }
+/* الجهاز يتذكر أسئلة اختبار المستوى التي ظهرت مؤخراً ويقدّم الجديدة أولاً */
+const SEENQ_KEY = 'lisan.seenQ';
+const seenQ = () => { try { return new Set(JSON.parse(localStorage.getItem(SEENQ_KEY) || '[]')); } catch (e) { return new Set(); } };
+const markSeenQ = qs => { try { const a = [...seenQ()].filter(x => !qs.includes(x)).concat(qs).slice(-240); localStorage.setItem(SEENQ_KEY, JSON.stringify(a)); } catch (e) { } };
 function runPlacement() {
-  leave(); const sets = LV.map(l => shuffle(C.placement[l])); const score = [0, 0, 0, 0], asked = [0, 0, 0, 0]; let li = 0, qi = 0; const N = 6, PASS = 5; const maxQ = N * 4; let n = 0;
+  leave(); GLOSS_OFF = true;
+  const seen = seenQ(); const sets = LV.map(l => { const all = C.placement[l]; return shuffle(all.filter(q => !seen.has(q[0]))).concat(shuffle(all.filter(q => seen.has(q[0])))); });
+  const score = [0, 0, 0, 0], asked = [0, 0, 0, 0]; let li = 0, qi = 0; const N = 6, PASS = 5; const maxQ = N * 4; let n = 0;
+  const log = [], used = [], t0 = Date.now();
   function draw() {
-    const q = sets[li][qi]; const opts = shuffle(q[1]);
+    const q = sets[li][qi]; const opts = shuffle(q[1]); used.push(q[0]);
     app.innerHTML = `<div class="ses"><div class="ses-top"><button class="icon-btn" data-x aria-label="خروج">✕</button><div class="pbar"><i style="width:${n / maxQ * 100}%"></i></div><span class="pill">${LV[li]}</span></div>
       <div class="ses-body"><h2 class="q">اختر الكلمة المناسبة</h2><div class="fill-s" dir="ltr">${esc(q[0]).replace('___', '<span class="slot">&nbsp;</span>')}</div><div style="height:18px"></div>
-      <div class="opts">${opts.map((o, i) => `<button class="opt" data-i="${i}" dir="ltr"><span class="k">${i + 1}</span>${esc(o)}</button>`).join('')}</div></div>
+      <div class="opts">${opts.map((o, i) => `<button class="opt" data-i="${i}" dir="ltr"><span class="k">${i + 1}</span>${esc(o)}</button>`).join('')}</div><div class="pl-fb"></div></div>
       <div class="ses-foot"><button class="btn ghost" data-dk>لا أعرف</button></div></div>`;
     $('[data-x]').onclick = () => confirmBox('إنهاء الاختبار؟', () => go('home'), 'إنهاء');
-    const answer = ok => { asked[li]++; if (ok) score[li]++; n++; qi++;
-      if (qi >= N) { if (score[li] >= PASS && li < 3) { li++; qi = 0; } else return finishPlacement(score, asked); }
-      else if (asked[li] - score[li] > N - PASS) { return finishPlacement(score, asked); } // استحال النجاح في هذا المستوى
+    const advance = ok => { asked[li]++; if (ok) score[li]++; n++; qi++;
+      if (qi >= N) { if (score[li] >= PASS && li < 3) { li++; qi = 0; } else return finishPlacement(score, asked, log, used, t0); }
+      else if (asked[li] - score[li] > N - PASS) { return finishPlacement(score, asked, log, used, t0); } // استحال النجاح في هذا المستوى
       draw(); };
-    $$('.opt').forEach(b => b.onclick = () => { $$('.opt').forEach(x => x.style.pointerEvents = 'none'); b.classList.add('sel'); setTimeout(() => answer(opts[+b.dataset.i] === q[2]), 260); });
-    $('[data-dk]').onclick = () => answer(false);
+    const judge = given => { // الحكم فوراً: أخضر للصحيح، وأحمر للخطأ مع إظهار الصحيح
+      const ok = given === q[2]; $$('.opt').forEach(x => { x.style.pointerEvents = 'none'; const o = opts[+x.dataset.i]; if (o === q[2]) x.classList.add('right'); else if (o === given) x.classList.add('wrong'); });
+      $('[data-dk]').disabled = true; const full = q[0].replace('___', q[2]);
+      $('.slot').textContent = q[2]; $('.pl-fb').innerHTML = ok ? `<span class="w-ok">✅ ${pick(PRAISE)}</span>` : `<span class="w-bad-plain">❌ ${given ? 'إجابة خاطئة' : 'لا بأس'}</span> · الصحيح: ${en(q[2])}`;
+      ok ? SFX.ok() : SFX.bad();
+      log.push({ type: 'fill', q: `<span dir="ltr" class="en">${esc(q[0])}</span> <span class="pill">${LV[li]}</span>`, given: given ? en(given) : '<i class="muted">لا أعرف</i>', correct: en(full), ok });
+      setTimeout(() => advance(ok), ok ? 750 : 1500);
+    };
+    $$('.opt').forEach(b => b.onclick = () => judge(opts[+b.dataset.i]));
+    $('[data-dk]').onclick = () => judge(null);
   }
   draw();
 }
-function finishPlacement(score, asked) {
+function finishPlacement(score, asked, log, used, t0) {
+  markSeenQ(used);
   const p = P(); let passed = 0; for (let i = 0; i < 4; i++) { if (asked[i] && score[i] >= 5) passed++; else break; }
   const level = ['A1', 'A2', 'B1', 'B1+', 'B2+'][passed];
   const start = passed === 0 ? 0 : passed === 1 ? 3 : passed === 2 ? 6 : NU;
   p.placement = { level, date: today(), score, asked }; if (start > p.startUnit) p.startUnit = start;
-  logEv('placement', { level, score, asked }); const badges = checkBadges(p); save();
+  saveMistakes(p, log, 'placement');
+  logEv('placement', { level, score, asked, secs: Math.round((Date.now() - t0) / 1000) }); const badges = checkBadges(p); save();
   const desc = { A1: 'مبتدئ: سنبني الأساس خطوة بخطوة من البداية.', A2: 'أساسي: تجاوزت الأساسيات، وستبدأ من الوحدة 4.', B1: 'متوسط: ممتاز! ستبدأ من وحدة المستوى المتوسط.', 'B1+': 'فوق المتوسط: فُتحت لك كل الوحدات المتاحة. ابدأ من أي درس.', 'B2+': 'متقدم: فُتح لك المنهج كاملاً. والمستويات الأعلى قادمة.' }[level];
-  leave(); SFX.win();
-  app.innerHTML = `<div class="result"><div class="big-ic">🎯</div><p class="muted" style="margin:10px 0 0">مستواك</p><div class="lvl-big">${level}</div><p>${desc}</p>
-    <div class="place-bars">${LV.map((l, i) => `<div class="pb-row"><b>${l}</b><div class="pbar"><i style="width:${asked[i] ? score[i] / asked[i] * 100 : 0}%"></i></div><small>${asked[i] ? score[i] + '/' + asked[i] : '—'}</small></div>`).join('')}</div>
-    ${badges.length ? `<div class="new-badges">${badges.map(b => `<div class="nb">${b.i} ${b.t}</div>`).join('')}</div>` : ''}
-    <div class="spacer"></div><button class="btn" data-n>ابدأ التعلّم</button></div>`;
-  $('[data-n]').onclick = () => go('home');
+  const show = () => {
+    leave(); const wrongN = log.filter(x => !x.ok).length;
+    app.innerHTML = `<div class="result"><div class="big-ic">🎯</div><p class="muted" style="margin:10px 0 0">مستواك</p><div class="lvl-big">${level}</div><p>${desc}</p>
+      <div class="place-bars">${LV.map((l, i) => `<div class="pb-row"><b>${l}</b><div class="pbar"><i style="width:${asked[i] ? score[i] / asked[i] * 100 : 0}%"></i></div><small>${asked[i] ? score[i] + '/' + asked[i] : '—'}</small></div>`).join('')}</div>
+      ${badges.length ? `<div class="new-badges">${badges.map(b => `<div class="nb">${b.i} ${b.t}</div>`).join('')}</div>` : ''}
+      <div class="spacer"></div><button class="btn ${wrongN ? 'acc' : 'ghost'}" data-ra>📋 راجع إجاباتك${wrongN ? ` (<span class="en">${wrongN}</span> خطأ)` : ''}</button><button class="btn" data-n>ابدأ التعلّم</button></div>`;
+    $('[data-n]').onclick = () => go('home');
+    $('[data-ra]').onclick = () => reviewAnswers(log, 'إجابات اختبار المستوى', show);
+  };
+  SFX.win(); show();
+}
+
+/* ---------------- اختيار المستوى يدوياً ---------------- */
+const LEVEL_CHOICES = [
+  ['🌱', 'مبتدئ', 'لا أعرف الإنجليزية، أو أعرف كلمات قليلة.', 0, 'A1'],
+  ['🌿', 'أساسي', 'أفهم جملاً بسيطة، وأعرف المضارع والملكية.', 3, 'A2'],
+  ['🌳', 'متوسط', 'أتحدث في مواقف يومية، وأعرف الماضي والمستقبل.', 6, 'B1']
+];
+function chooseLevel(after) {
+  sheet(`<h3>أختار مستواي</h3><p class="muted">اختر الأقرب لك. يمكنك تغييره لاحقاً من صفحة «ملفي».</p><div class="list" style="text-align:start">${LEVEL_CHOICES.map((c, i) => `<button class="row-card" data-lv="${i}"><span class="ic">${c[0]}</span><span class="tx"><b>${c[1]} <span class="en pill">${c[4]}</span></b><small>${c[2]}</small></span></button>`).join('')}</div>`, (s, close) => {
+    $$('[data-lv]', s).forEach(b => b.onclick = () => {
+      const c = LEVEL_CHOICES[+b.dataset.lv]; const p = P(); p.startUnit = c[3]; p.placement = { level: c[4], date: today(), manual: true };
+      logEv('level_chosen', { level: c[4] }); save(); close(); toast(`✅ تبدأ من الوحدة ${c[3] + 1}`); (after || (() => go('home')))();
+    });
+  });
+}
+
+/* ---------------- تحدي السرعة: 10 أسئلة × 10 ثوانٍ ---------------- */
+function startSpeed() {
+  const p = P(); const learned = LESSONS.filter(L => p.done[L.id] || unitSkipped(p, L.ui)); const pool = learned.length ? learned : UNIT_LESSONS[0];
+  const items = shuffle(pool.flatMap(L => [...L.vocab.map(v => () => pick([exMcArEn, exMcEnAr])(v, L)), ...L.blanks.map(b => () => exFill(b))])).slice(0, 10).map(f => { const e = f(); e.timed = 10; return e; });
+  runSession({ mode: 'speed', ctx: 'speed', exercises: items, onDone: s => {
+    const before = todayXP(p); const correct = Math.round(s.acc * s.total / 100); const pts = correct * 10 + s.bonus;
+    const best = p.speedBest || 0; const record = pts > best; if (record) p.speedBest = pts;
+    const xp = 5 + Math.round(pts / 20); addXP(p, xp); logEv('speed', { correct, total: s.total, pts, secs: s.secs }); const badges = checkBadges(p); save();
+    resultScreen({ icon: record ? '🚀' : '⚡', title: record ? 'رقم قياسي جديد!' : 'انتهى التحدي!', sub: `نتيجتك <b class="en">${pts}</b> نقطة (<span class="en">${correct}/${s.total}</span> صحيحة + <span class="en">${s.bonus}</span> للسرعة) · أفضل نتيجة: <b class="en">${Math.max(best, pts)}</b>`, xp, acc: s.acc, secs: s.secs, badges, goalBefore: before, log: s.log });
+  } });
 }
 
 /* ---------------- المحادثات ---------------- */
@@ -2030,66 +2560,109 @@ function pinPad(title, onDone, opts = {}) {
     });
   });
 }
-function parentGate(then) { // يحمي إضافة وحذف المتعلمين والاستيراد ولوحة ولي الأمر
+function parentGate(then) { // للتوافق مع بيانات الإصدار السابق فقط: لا يُطلب إلا إذا كان رقم العائلة القديم مفعّلاً
   if (!DB.family || !DB.family.pin) return then();
-  pinPad('🔐 رقم ولي الأمر', v => { if (hashPin(v) !== DB.family.pin) return false; then(); });
+  pinPad('🔐 رقم الحماية', v => { if (hashPin(v) !== DB.family.pin) return false; then(); });
 }
 
-function scrFamilySetup() {
-  leave(); SCREEN = 'setup'; let pin = null;
-  app.innerHTML = `<div class="form"><div class="logo" style="justify-content:center;display:flex"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiMxNEMwOEYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwQTdBNjEiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMiIgZmlsbD0idXJsKCNnKSIvPgogIDxwYXRoIGQ9Ik0xMjAgMTUwYzAtMjggMjItNTAgNTAtNTBoMTcyYzI4IDAgNTAgMjIgNTAgNTB2MTMyYzAgMjgtMjIgNTAtNTAgNTBIMjUwbC03NCA2NHYtNjRoLTZjLTI4IDAtNTAtMjItNTAtNTB6IiBmaWxsPSIjZmZmIi8+CiAgPHBhdGggZD0iTTMwMCAxNTB2MTE4YzAgMzQtMjggNTItNjIgNTJzLTYwLTE4LTYwLTUwIiBmaWxsPSJub25lIiBzdHJva2U9IiMwRTlGN0UiIHN0cm9rZS13aWR0aD0iMzQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxjaXJjbGUgY3g9IjM2OCIgY3k9IjEyOCIgcj0iMzAiIGZpbGw9IiNGRkIwMjAiLz4KPC9zdmc+Cg==" alt="" onerror="this.remove()">لِسان</div>
-    <h2 style="text-align:center;margin-top:18px">مرحباً بكم!</h2><p style="text-align:center">لنُعدّ حساب العائلة. بعدها يضيف كل فرد ملفه الخاص.</p>
-    <label class="field" for="fn">اسم العائلة</label><input class="inp" id="fn" maxlength="24" placeholder="مثال: عائلة أبو أحمد">
-    <label class="field">رقم سري لولي الأمر <small class="muted">(اختياري)</small></label>
-    <p style="margin:0 0 8px;font-size:14px">يمنع الأطفال من حذف الملفات أو تغيير الإعدادات المهمة.</p>
-    <button class="btn ghost" data-pin>🔐 تعيين رقم سري</button>
-    <button class="btn" data-go disabled>متابعة</button></div>`;
-  const fn = $('#fn'); fn.oninput = () => { $('[data-go]').disabled = !fn.value.trim(); }; setTimeout(() => fn.focus(), 100);
-  $('[data-pin]').onclick = () => pinPad('رقم ولي الأمر الجديد', v => { pin = hashPin(v); $('[data-pin]').textContent = '✅ تم تعيين الرقم السري'; });
-  $('[data-go]').onclick = () => { DB.family = { name: fn.value.trim(), pin, created: Date.now() }; save(); scrNewProfile(); };
+/* ---------- الترحيب: أنا جديد · لدي حساب سابق ---------- */
+function scrWelcome() {
+  leave(); SCREEN = 'profiles';
+  app.innerHTML = `<div class="prof-scr"><div class="logo"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiMxNEMwOEYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwQTdBNjEiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMiIgZmlsbD0idXJsKCNnKSIvPgogIDxwYXRoIGQ9Ik0xMjAgMTUwYzAtMjggMjItNTAgNTAtNTBoMTcyYzI4IDAgNTAgMjIgNTAgNTB2MTMyYzAgMjgtMjIgNTAtNTAgNTBIMjUwbC03NCA2NHYtNjRoLTZjLTI4IDAtNTAtMjItNTAtNTB6IiBmaWxsPSIjZmZmIi8+CiAgPHBhdGggZD0iTTMwMCAxNTB2MTE4YzAgMzQtMjggNTItNjIgNTJzLTYwLTE4LTYwLTUwIiBmaWxsPSJub25lIiBzdHJva2U9IiMwRTlGN0UiIHN0cm9rZS13aWR0aD0iMzQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxjaXJjbGUgY3g9IjM2OCIgY3k9IjEyOCIgcj0iMzAiIGZpbGw9IiNGRkIwMjAiLz4KPC9zdmc+Cg==" alt="" onerror="this.remove()">لِسان</div><p class="tagline">تعلّم الإنجليزية خطوة بخطوة، دقائق كل يوم.</p>
+    <div class="welcome-art">👋</div><h2>أهلاً بك!</h2>
+    <button class="choice-big" data-new><span class="ic">🌱</span><span><b>أنا جديد</b><span>أبدأ من الصفر، أو بالاختبار، أو أختار مستواي.</span></span></button>
+    <button class="choice-big" data-imp><span class="ic">📲</span><span><b>لدي حساب سابق</b><span>أنقل تقدّمي من جهاز آخر وأكمل من حيث توقفت.</span></span></button>
+    <p class="muted" style="font-size:13px;margin-top:22px">${syncLine()}</p></div>`;
+  $('[data-new]').onclick = scrNewProfile; $('[data-imp]').onclick = importAccount;
 }
 function scrProfiles() {
   leave(); SCREEN = 'profiles'; DB.current = null; saveLocal(); applyTheme();
-  if (!DB.family) return scrFamilySetup();
-  app.innerHTML = `<div class="prof-scr"><div class="logo"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiMxNEMwOEYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwQTdBNjEiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMiIgZmlsbD0idXJsKCNnKSIvPgogIDxwYXRoIGQ9Ik0xMjAgMTUwYzAtMjggMjItNTAgNTAtNTBoMTcyYzI4IDAgNTAgMjIgNTAgNTB2MTMyYzAgMjgtMjIgNTAtNTAgNTBIMjUwbC03NCA2NHYtNjRoLTZjLTI4IDAtNTAtMjItNTAtNTB6IiBmaWxsPSIjZmZmIi8+CiAgPHBhdGggZD0iTTMwMCAxNTB2MTE4YzAgMzQtMjggNTItNjIgNTJzLTYwLTE4LTYwLTUwIiBmaWxsPSJub25lIiBzdHJva2U9IiMwRTlGN0UiIHN0cm9rZS13aWR0aD0iMzQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxjaXJjbGUgY3g9IjM2OCIgY3k9IjEyOCIgcj0iMzAiIGZpbGw9IiNGRkIwMjAiLz4KPC9zdmc+Cg==" alt="" onerror="this.remove()">لِسان</div><p class="tagline">${esc(DB.family.name)} · تعلّم الإنجليزية خطوة بخطوة</p>
+  if (!DB.profiles.length) return scrWelcome();
+  app.innerHTML = `<div class="prof-scr"><div class="logo"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiMxNEMwOEYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwQTdBNjEiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMiIgZmlsbD0idXJsKCNnKSIvPgogIDxwYXRoIGQ9Ik0xMjAgMTUwYzAtMjggMjItNTAgNTAtNTBoMTcyYzI4IDAgNTAgMjIgNTAgNTB2MTMyYzAgMjgtMjIgNTAtNTAgNTBIMjUwbC03NCA2NHYtNjRoLTZjLTI4IDAtNTAtMjItNTAtNTB6IiBmaWxsPSIjZmZmIi8+CiAgPHBhdGggZD0iTTMwMCAxNTB2MTE4YzAgMzQtMjggNTItNjIgNTJzLTYwLTE4LTYwLTUwIiBmaWxsPSJub25lIiBzdHJva2U9IiMwRTlGN0UiIHN0cm9rZS13aWR0aD0iMzQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxjaXJjbGUgY3g9IjM2OCIgY3k9IjEyOCIgcj0iMzAiIGZpbGw9IiNGRkIwMjAiLz4KPC9zdmc+Cg==" alt="" onerror="this.remove()">لِسان</div><p class="tagline">تعلّم الإنجليزية خطوة بخطوة، دقائق كل يوم.</p>
     <h2 style="margin-bottom:16px">من يتعلّم الآن؟</h2>
-    <div class="prof-grid">${DB.profiles.map(p => `<button class="prof" data-id="${p.id}"><span class="av">${p.avatar}</span><b>${esc(p.name)}${p.pin ? ' 🔒' : ''}</b><small><span class="en">${levelLabel(p)}</span> · 🔥 ${streakNow(p)} · ⭐ ${p.xp}</small></button>`).join('')}
-    <button class="prof add" data-add><span class="av">＋</span>إضافة فرد</button></div>
+    <div class="prof-grid">${DB.profiles.map(p => `<button class="prof" data-id="${p.id}"><span class="av">${p.avatar}</span><b>${esc(p.name)}${p.pin ? ' 🔒' : ''}</b><small><span class="en">${levelLabel(p)}</span> · 🔥 <span class="en">${streakNow(p)}</span> · ⭐ <span class="en">${p.xp}</span></small></button>`).join('')}
+    <button class="prof add" data-add><span class="av">＋</span>إضافة شخص</button></div>
     <p class="muted" style="font-size:13px">${syncLine()}</p></div>`;
   $$('[data-id]').forEach(b => b.onclick = () => {
     const p = DB.profiles.find(x => x.id === b.dataset.id); const enter = () => { DB.current = p.id; saveLocal(); go('home'); };
     if (p.pin) pinPad(`${p.avatar} ${esc(p.name)}`, v => { if (hashPin(v) !== p.pin) return false; enter(); }); else enter();
   });
-  $('[data-add]').onclick = () => parentGate(scrNewProfile);
+  $('[data-add]').onclick = () => parentGate(() => sheet(`<h3>إضافة شخص</h3>
+    <button class="choice-big" data-new><span class="ic">🌱</span><span><b>شخص جديد</b><span>يبدأ من الصفر على هذا الجهاز.</span></span></button>
+    <button class="choice-big" data-imp><span class="ic">📲</span><span><b>لديه حساب سابق</b><span>ينقل تقدّمه من جهاز آخر.</span></span></button>`, (s, close) => {
+    $('[data-new]', s).onclick = () => { close(); scrNewProfile(); }; $('[data-imp]', s).onclick = () => { close(); importAccount(); };
+  }));
 }
 function scrNewProfile() {
   leave(); let name = '', av = AVATARS[rnd(AVATARS.length)], goal = 30, step = 0, pin = null;
   function draw() {
     if (step === 0) {
-      app.innerHTML = `<div class="form"><button class="icon-btn" data-b aria-label="رجوع">→</button><h2>ملف جديد</h2><p>لكل فرد في العائلة ملفه وتقدّمه الخاص.</p>
+      app.innerHTML = `<div class="form"><button class="icon-btn" data-b aria-label="رجوع">→</button><h2>حساب جديد</h2><p>لكل شخص حسابه وتقدّمه الخاص.</p>
         <label class="field" for="nm">الاسم</label><input class="inp" id="nm" maxlength="20" placeholder="مثال: محمد" value="${esc(name)}">
         <label class="field">الصورة الرمزية</label><div class="av-grid">${AVATARS.map(a => `<button class="${a === av ? 'sel' : ''}" data-av="${a}">${a}</button>`).join('')}</div>
         <label class="field">الهدف اليومي</label><div class="goal-list">${GOALS.map(g => `<button class="goal ${g[0] === goal ? 'sel' : ''}" data-g="${g[0]}"><span>${g[1]} <small>· ${g[2]}</small></span><span class="en">${g[0]} XP</span></button>`).join('')}</div>
-        <label class="field">قفل الملف <small class="muted">(اختياري)</small></label><button class="btn ghost" data-pin style="margin-top:0">${pin ? '✅ تم تعيين الرقم السري' : '🔒 رقم سري لهذا الملف'}</button>
+        <label class="field">رقم سري <small class="muted">(اختياري)</small></label><button class="btn ghost" data-pin style="margin-top:0">${pin ? '✅ تم تعيين الرقم السري' : '🔒 قفل الحساب برقم سري'}</button>
         <button class="btn" data-n ${name.trim() ? '' : 'disabled'}>التالي</button></div>`;
-      $('[data-pin]').onclick = () => pinPad('رقم سري للملف', v => { pin = hashPin(v); $('[data-pin]').textContent = '✅ تم تعيين الرقم السري'; });
+      $('[data-pin]').onclick = () => pinPad('رقم سري للحساب', v => { pin = hashPin(v); $('[data-pin]').textContent = '✅ تم تعيين الرقم السري'; });
       const nm = $('#nm'); nm.oninput = () => { name = nm.value; $('[data-n]').disabled = !name.trim(); };
       $$('[data-av]').forEach(b => b.onclick = () => { av = b.dataset.av; $$('[data-av]').forEach(x => x.classList.toggle('sel', x === b)); });
       $$('[data-g]').forEach(b => b.onclick = () => { goal = +b.dataset.g; $$('[data-g]').forEach(x => x.classList.toggle('sel', x === b)); });
-      $('[data-b]').onclick = () => DB.profiles.length ? go('profiles') : scrFamilySetup();
+      $('[data-b]').onclick = () => go('profiles');
       $('[data-n]').onclick = () => { step = 1; draw(); };
       if (!name) setTimeout(() => nm.focus(), 100);
     } else {
       app.innerHTML = `<div class="form"><button class="icon-btn" data-b aria-label="رجوع">→</button><div style="font-size:56px;text-align:center">${av}</div><h2 style="text-align:center">أهلاً ${esc(name)}!</h2><p style="text-align:center">من أين تريد أن تبدأ؟</p>
-        <button class="choice-big" data-z><span class="ic">🌱</span><span><b>من البداية</b><span>لا أعرف الإنجليزية، أو أريد تأسيساً قوياً.</span></span></button>
-        <button class="choice-big" data-p><span class="ic">🎯</span><span><b>اختبار تحديد المستوى</b><span>أعرف بعض الإنجليزية، حدّد لي نقطة البداية.</span></span></button></div>`;
+        <button class="choice-big" data-z><span class="ic">🌱</span><span><b>من الصفر</b><span>لا أعرف الإنجليزية، أو أريد تأسيساً قوياً.</span></span></button>
+        <button class="choice-big" data-p><span class="ic">🎯</span><span><b>اختبار تحديد المستوى</b><span>أعرف بعض الإنجليزية، حدّد لي نقطة البداية.</span></span></button>
+        <button class="choice-big" data-l><span class="ic">🧭</span><span><b>أختار مستواي</b><span>أعرف مستواي، وأريد البدء منه مباشرة.</span></span></button></div>`;
       $('[data-b]').onclick = () => { step = 0; draw(); };
-      const create = () => { const p = newProfile(name.trim(), av, goal); p.pin = pin; DB.profiles.push(p); DB.current = p.id; save(); logEv('learner_created', { name: p.name }); };
+      let made = false;
+      const create = () => { if (made) return; made = true; const p = newProfile(name.trim(), av, goal); p.pin = pin; DB.profiles.push(p); DB.current = p.id; save(); logEv('learner_created', { name: p.name }); };
       $('[data-z]').onclick = () => { create(); go('home'); };
       $('[data-p]').onclick = () => { create(); startPlacement(); };
+      $('[data-l]').onclick = () => { create(); chooseLevel(); };
     }
   }
   draw();
+}
+
+/* ---------- نقل الحساب بين الأجهزة (ملف صغير يُرسل عبر الواتساب أو غيره) ---------- */
+async function shareFile(name, json, title) {
+  try {
+    const f = new File([json], name, { type: 'application/json' });
+    if (!IN_CLAUDE && navigator.canShare && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f], title }); return true; }
+  } catch (e) { if (e && e.name === 'AbortError') return false; }
+  if (IN_CLAUDE) {
+    try { const dl = await window.claude.use('downloads'); if (dl) { await dl.save({ filename: name, data: json }); return true; } } catch (e) { return false; }
+    toast('الحفظ غير متاح هنا'); return false;
+  }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([json], { type: 'application/json' })); a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); return true;
+}
+async function exportAccount(p) {
+  const events = await Store.events(p.id);
+  const json = JSON.stringify({ app: 'lisan', kind: 'account', v: 2, exported: new Date().toISOString(), profile: p, events });
+  const ascii = p.name.replace(/[^A-Za-z0-9]+/g, '').slice(0, 16); // المتصفحات تُسقط الحروف العربية من أسماء الملفات
+  if (await shareFile(`lisan-account${ascii ? '-' + ascii : ''}-${today()}.json`, json, `حساب ${p.name} في لِسان`)) toast('✅ جاهز: افتح الملف على الجهاز الجديد من «لدي حساب سابق»');
+}
+function importAccount() {
+  const i = document.createElement('input'); i.type = 'file'; i.accept = 'application/json,.json';
+  i.onchange = () => { const f = i.files[0]; if (!f) return; const r = new FileReader();
+    r.onload = async () => {
+      let list = [], events = [];
+      try { const j = JSON.parse(r.result); if (j.kind === 'account' && j.profile) list = [j.profile]; else { const d = j.data || j; if (d && Array.isArray(d.profiles)) list = d.profiles; } events = j.events || []; } catch (e) { }
+      if (!list.length) return toast('❌ هذا الملف ليس حساباً من لِسان');
+      const clash = list.filter(x => DB.profiles.some(y => y.id === x.id));
+      const apply = async () => {
+        list.forEach(x => { fixProfile(x); const k = DB.profiles.findIndex(y => y.id === x.id); if (k >= 0) DB.profiles[k] = x; else DB.profiles.push(x); });
+        if (events.length) await Store.importEvents(events);
+        DB.current = list.length === 1 ? list[0].id : null; save(); logEv('account_imported', { n: list.length });
+        toast(list.length === 1 ? `✅ أهلاً ${esc(list[0].name)}! أكمل من حيث توقفت` : `✅ نُقل ${list.length} حسابات`); go(list.length === 1 ? 'home' : 'profiles');
+      };
+      if (clash.length) confirmBox(`الحساب «${esc(clash[0].name)}» موجود على هذا الجهاز. استبداله بالنسخة المنقولة؟`, apply, 'استبدال'); else apply();
+    };
+    r.readAsText(f); };
+  i.click();
 }
 
 let TAB = 'path';
@@ -2115,7 +2688,8 @@ const OFF = [0, 46, 70, 46, 0, -46, -70, -46];
 function tabPath(p, el) {
   const cur = currentItem(p); const tx = todayXP(p); const pct = Math.min(100, Math.round(tx / p.goal * 100)); const due = dueKeys(p).length;
   let h = `<div class="card goal-card"><div class="ring" style="--p:${pct}"><span>${pct >= 100 ? '🎯' : '⚡'}</span></div><div style="flex:1"><b>${pct >= 100 ? 'حققت هدف اليوم!' : 'هدفك اليومي'}</b><small class="en">${tx} / ${p.goal} XP</small></div>${due ? `<button class="btn acc sm" data-rvq>🧠 ${due} للمراجعة</button>` : ''}</div>`;
-  if (!p.placement) h += `<button class="card cta-card" data-pl><span class="ic">🎯</span><span><b>اختبار تحديد المستوى</b><small>تعرف الإنجليزية؟ تخطَّ ما تعرفه وابدأ من مستواك.</small></span></button>`;
+  h += `<button class="card speed-card" data-speed><span class="ic">⚡</span><span style="flex:1"><b>تحدي السرعة</b><small>10 أسئلة · 10 ثوانٍ لكل سؤال${p.speedBest ? ` · أفضل نتيجة <span class="en">${p.speedBest}</span>` : ''}</small></span><span class="pill">ابدأ</span></button>`;
+  if (!p.placement) h += `<button class="card cta-card" data-pl><span class="ic">🎯</span><span><b>اختبار تحديد المستوى</b><small>أو اختر مستواك بنفسك من صفحة «ملفي».</small></span></button>`;
   C.units.forEach((u, ui) => {
     const ls = UNIT_LESSONS[ui]; const dn = ls.filter(l => p.done[l.id]).length; const open = unitOpen(p, ui);
     h += `<section class="unit ${open ? '' : 'u-locked'}"><div class="uhead" style="--uc:${u.color}"><div><small>الوحدة ${ui + 1} · <span class="en">${u.lvl}</span> · <span class="en">${dn}/${ls.length}</span>${p.passed[ui] ? ' · ✅ ناجح' : ''}</small><h3>${u.t}</h3><p>${open ? u.d : '🔒 تُفتح بعد اجتياز اختبار الوحدة السابقة'}</p></div><button class="gbtn" data-ug="${ui}" aria-label="القواعد">📖</button></div><div class="path">`;
@@ -2129,6 +2703,7 @@ function tabPath(p, el) {
   el.innerHTML = h;
   const pl = $('[data-pl]', el); if (pl) pl.onclick = startPlacement;
   const rq = $('[data-rvq]', el); if (rq) rq.onclick = startReview;
+  $('[data-speed]', el).onclick = startSpeed;
   $$('[data-g]', el).forEach(b => b.onclick = () => lessonSheet(LESSONS[+b.dataset.g]));
   $$('[data-t]', el).forEach(b => b.onclick = () => unitTestSheet(+b.dataset.t));
   $$('[data-ug]', el).forEach(b => b.onclick = () => unitGrammarSheet(+b.dataset.ug));
@@ -2185,23 +2760,25 @@ function tabMe(p, el) {
       <div class="kpi"><span class="ic">🧠</span><span><b>${dueKeys(p).length}</b><small>مستحق للمراجعة</small></span></div></div>
     <h3 class="sec-h">آخر 7 أيام</h3><div class="card"><div class="week">${days.map((d, i) => { const [y, m, dd] = d.split('-').map(Number); return `<div class="d ${i === 6 ? 'today' : ''}"><span class="v">${vals[i] || ''}</span><div class="bar ${vals[i] ? '' : 'zero'}" style="height:${vals[i] / mx * 100}%"></div><small>${DN[new Date(y, m - 1, dd).getDay()]}</small></div>`; }).join('')}</div></div>
     <h3 class="sec-h">الشارات (${p.badges.length}/${BADGES.length})</h3><div class="badges">${BADGES.map(b => `<div class="badge ${p.badges.includes(b.id) ? '' : 'off'}"><div class="ic">${b.i}</div><b>${b.t}</b><small>${b.d}</small></div>`).join('')}</div>
+    <h3 class="sec-h">سجل أخطائي</h3><button class="row-card" data-mist><span class="ic">📋</span><span class="tx"><b>${(p.mistakes || []).length ? `<span class="en">${(p.mistakes || []).length}</span> خطأ محفوظ` : 'لا أخطاء محفوظة بعد'}</b><small>كل سؤال أخطأت فيه مع إجابتك والإجابة الصحيحة</small></span></button>
     <h3 class="sec-h">الإعدادات</h3><div class="card">
       <div class="set-row"><span><b>الهدف اليومي</b><small>${p.goal} XP</small></span><div class="seg">${GOALS.map(g => `<button class="${p.goal === g[0] ? 'on' : ''}" data-goal="${g[0]}">${g[1]}</button>`).join('')}</div></div>
       <div class="set-row"><span><b>تمارين النطق بالميكروفون</b><small>${IN_CLAUDE ? 'غير متاح داخل رابط المعاينة، فيتحول التمرين إلى كتابة' : SR ? 'يحتاج إنترنت، وبدونه يتحول التمرين إلى كتابة' : 'غير مدعوم في هذا المتصفح، فيتحول التمرين إلى كتابة'}</small></span><button class="sw ${p.settings.mic ? 'on' : ''}" data-tg="mic" aria-label="الميكروفون"></button></div>
-      <div class="set-row"><span><b>قفل ملفي</b><small>${p.pin ? 'مقفل برقم سري' : 'بدون رقم سري'}</small></span><button class="btn ghost sm" data-mypin>${p.pin ? 'إزالة' : 'تعيين'}</button></div>
+      <div class="set-row"><span><b>رقم سري لحسابي</b><small>${p.pin ? 'مقفل برقم سري' : 'اختياري: يمنع غيرك من فتح حسابك'}</small></span><button class="btn ghost sm" data-mypin>${p.pin ? 'إزالة' : 'تعيين'}</button></div>
+      <div class="set-row"><span><b>أسئلة بمؤقت</b><small>سؤالان بمؤقت 15 ثانية في كل درس</small></span><button class="sw ${p.settings.timer ? 'on' : ''}" data-tg="timer" aria-label="المؤقت"></button></div>
       <div class="set-row"><span><b>المؤثرات الصوتية</b><small>أصوات الإجابة الصحيحة والخاطئة</small></span><button class="sw ${p.settings.sfx ? 'on' : ''}" data-tg="sfx" aria-label="المؤثرات"></button></div>
       <div class="set-row"><span><b>سرعة النطق</b><small>صوت القارئ الإنجليزي</small></span><div class="seg">${[[0.7, 'بطيء'], [0.9, 'عادي'], [1.05, 'سريع']].map(r => `<button class="${p.settings.rate === r[0] ? 'on' : ''}" data-rate="${r[0]}">${r[1]}</button>`).join('')}</div></div>
       <div class="set-row"><span><b>المظهر</b></span><div class="seg">${[['auto', 'تلقائي'], ['light', 'فاتح'], ['dark', 'داكن']].map(r => `<button class="${p.settings.theme === r[0] ? 'on' : ''}" data-th="${r[0]}">${r[1]}</button>`).join('')}</div></div>
-      <div class="set-row"><span><b>اختبار المستوى</b><small>${p.placement ? 'آخر نتيجة: ' + p.placement.level : 'لم يُجرَ بعد'}</small></span><button class="btn ghost sm" data-pl>${p.placement ? 'إعادة' : 'ابدأ'}</button></div>
+      <div class="set-row"><span><b>المستوى</b><small>${p.placement ? (p.placement.manual ? 'اخترته بنفسك: ' : 'نتيجة الاختبار: ') + `<span class="en">${p.placement.level}</span>` : 'لم يُحدَّد بعد'}</small></span><span style="display:flex;gap:6px"><button class="btn ghost sm" data-lvl>اختيار</button><button class="btn ghost sm" data-pl>اختبار</button></span></div>
     </div>
-    <h3 class="sec-h">البيانات والعائلة</h3><div class="card">
-      <div class="set-row"><span><b>${CLOUD.on ? '☁️ المزامنة مفعّلة' : '💾 حفظ محلي'}</b><small>${CLOUD.on ? 'تقدّم العائلة محفوظ في حسابك ويظهر على أي جهاز تفتح منه الرابط' : 'للعمل على أكثر من جهاز: افتح التطبيق من رابط claude.ai، أو انقل النسخة الاحتياطية'}</small></span></div>
-      <div class="set-row"><span><b>تبديل الملف</b><small>${DB.profiles.length} ملف في ${esc(DB.family ? DB.family.name : 'العائلة')}</small></span><button class="btn ghost sm" data-sw>تبديل</button></div>
-      <div class="set-row"><span><b>رقم ولي الأمر</b><small>${DB.family && DB.family.pin ? 'مفعّل: يحمي الإضافة والحذف والاستيراد' : 'غير مفعّل'}</small></span><button class="btn ghost sm" data-fpin>${DB.family && DB.family.pin ? 'تغيير' : 'تعيين'}</button></div>
-      <div class="set-row"><span><b>نسخة احتياطية</b><small>احفظ تقدّم العائلة كاملاً في ملف</small></span><button class="btn ghost sm" data-ex>تصدير</button></div>
-      <div class="set-row"><span><b>استعادة / نقل لجهاز آخر</b><small>من ملف نسخة احتياطية</small></span><button class="btn ghost sm" data-im>استيراد</button></div>
-      <div class="set-row"><span><b style="color:var(--bad)">حذف هذا الملف</b><small>لا يمكن التراجع</small></span><button class="btn ghost sm" data-del style="color:var(--bad)">حذف</button></div>
-    </div><p class="muted" style="text-align:center;font-size:12px;margin-top:20px">لِسان · الإصدار <span class="en">2.0</span> · يعمل دون إنترنت بعد التثبيت</p>`;
+    <h3 class="sec-h">الحساب والبيانات</h3><div class="card">
+      <div class="set-row"><span><b>${CLOUD.on ? '☁️ المزامنة مفعّلة' : '💾 حفظ محلي'}</b><small>${CLOUD.on ? 'تقدّمك محفوظ في حسابك ويظهر على أي جهاز تفتح منه الرابط' : 'تقدّمك محفوظ على هذا الجهاز. لنقله استخدم «انقل حسابي».'}</small></span></div>
+      <div class="set-row"><span><b>📲 انقل حسابي</b><small>ملف صغير ترسله لنفسك، وتفتحه على الجهاز الجديد من «لدي حساب سابق»</small></span><button class="btn acc sm" data-mv>نقل</button></div>
+      <div class="set-row"><span><b>تبديل الحساب</b><small><span class="en">${DB.profiles.length}</span> ${DB.profiles.length === 1 ? 'حساب' : 'حسابات'} على هذا الجهاز</small></span><button class="btn ghost sm" data-sw>تبديل</button></div>
+      <div class="set-row"><span><b>نسخة احتياطية للجهاز</b><small>كل الحسابات على هذا الجهاز في ملف واحد</small></span><button class="btn ghost sm" data-ex>تصدير</button></div>
+      <div class="set-row"><span><b>استيراد</b><small>حساب منقول أو نسخة احتياطية</small></span><button class="btn ghost sm" data-im>استيراد</button></div>
+      <div class="set-row"><span><b style="color:var(--bad)">حذف هذا الحساب</b><small>لا يمكن التراجع</small></span><button class="btn ghost sm" data-del style="color:var(--bad)">حذف</button></div>
+    </div><p class="muted" style="text-align:center;font-size:12px;margin-top:20px">لِسان · الإصدار <span class="en">2.1</span> · يعمل دون إنترنت بعد التثبيت</p>`;
   const rer = () => { save(); applyTheme(); scrHome(); };
   $$('[data-goal]', el).forEach(b => b.onclick = () => { p.goal = +b.dataset.goal; rer(); });
   $$('[data-tg]', el).forEach(b => b.onclick = () => { const k = b.dataset.tg; p.settings[k] = !p.settings[k]; rer(); });
@@ -2210,10 +2787,13 @@ function tabMe(p, el) {
   $('[data-pl]', el).onclick = startPlacement;
   $('[data-sw]', el).onclick = () => go('profiles');
   $('[data-ex]', el).onclick = exportData;
-  $('[data-im]', el).onclick = () => parentGate(importData);
-  $('[data-del]', el).onclick = () => parentGate(() => confirmBox(`حذف ملف «${esc(p.name)}» وكل تقدّمه نهائياً؟`, () => { DB.profiles = DB.profiles.filter(x => x.id !== p.id); DB.current = null; save(); go('profiles'); }, 'حذف نهائي'));
-  $('[data-mypin]', el).onclick = () => { if (p.pin) { p.pin = null; rer(); toast('أُزيل القفل'); } else pinPad('رقم سري لملفك', v => { p.pin = hashPin(v); rer(); toast('🔒 تم قفل الملف'); }); };
-  $('[data-fpin]', el).onclick = () => parentGate(() => pinPad('رقم ولي الأمر الجديد', v => { DB.family.pin = hashPin(v); rer(); toast('🔐 تم تعيين رقم ولي الأمر'); }));
+  $('[data-im]', el).onclick = () => parentGate(importAccount);
+  $('[data-mv]', el).onclick = () => exportAccount(p);
+  $('[data-lvl]', el).onclick = () => chooseLevel(() => scrHome());
+  $('[data-mist]', el).onclick = () => { const m = (p.mistakes || []).slice().reverse(); if (!m.length) return toast('لا أخطاء محفوظة بعد 👍'); reviewAnswers(m.map(x => Object.assign({ ok: false }, x)), 'سجل أخطائي', () => scrHome()); };
+  const ownGate = fn => p.pin ? pinPad('أكّد برقمك السري', v => { if (hashPin(v) !== p.pin) return false; fn(); }) : fn();
+  $('[data-del]', el).onclick = () => ownGate(() => confirmBox(`حذف ملف «${esc(p.name)}» وكل تقدّمه نهائياً؟`, () => { DB.profiles = DB.profiles.filter(x => x.id !== p.id); DB.current = null; save(); go('profiles'); }, 'حذف نهائي'));
+  $('[data-mypin]', el).onclick = () => { if (p.pin) ownGate(() => { p.pin = null; rer(); toast('أُزيل القفل'); });  else pinPad('رقم سري لملفك', v => { p.pin = hashPin(v); rer(); toast('🔒 تم قفل الملف'); }); };
   $('[data-ren]', el).onclick = () => sheet(`<h3>تعديل الملف</h3><input class="inp" id="rn" maxlength="20" value="${esc(p.name)}" style="margin:14px 0"><div class="av-grid">${AVATARS.map(a => `<button class="${a === p.avatar ? 'sel' : ''}" data-av="${a}">${a}</button>`).join('')}</div><button class="btn" data-sv>حفظ</button>`, (s, close) => {
     let av = p.avatar; $$('[data-av]', s).forEach(b => b.onclick = () => { av = b.dataset.av; $$('[data-av]', s).forEach(x => x.classList.toggle('sel', x === b)); });
     $('[data-sv]', s).onclick = () => { const n = $('#rn', s).value.trim(); if (n) p.name = n; p.avatar = av; close(); rer(); };
@@ -2230,16 +2810,6 @@ async function exportData() {
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `lisan-backup-${today()}.json`; document.body.appendChild(a); a.click();
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); toast('✅ تم حفظ النسخة الاحتياطية');
 }
-function importData() {
-  const i = document.createElement('input'); i.type = 'file'; i.accept = 'application/json,.json';
-  i.onchange = () => { const f = i.files[0]; if (!f) return; const r = new FileReader();
-    r.onload = () => { try { const j = JSON.parse(r.result); const d = j.data || j; if (!d || !Array.isArray(d.profiles)) throw 0;
-      confirmBox(`استيراد ${d.profiles.length} ملف؟ سيُستبدل كل ما على هذا الجهاز.`, async () => { DB = d; fixDB(); DB.current = null; save(); if (j.events) await Store.importEvents(j.events); toast('✅ تمت الاستعادة'); go('profiles'); }, 'استيراد');
-    } catch (e) { toast('❌ الملف غير صالح'); } };
-    r.readAsText(f); };
-  i.click();
-}
-
 /* ---------------- الموجّه ---------------- */
 function go(scr, arg) {
   if (CLOUD.pending) { const d = CLOUD.pending; CLOUD.pending = null; if (d.updated > (DB.updated || 0)) cloudApply(d); }
